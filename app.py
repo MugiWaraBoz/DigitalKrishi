@@ -15,6 +15,10 @@ def index():
 def loginpage():
     return render_template('frontpage.html')
 
+@app.route('/logout')
+def logOut():
+    return render_template('logout.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
 
