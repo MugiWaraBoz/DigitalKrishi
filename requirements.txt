@@ -27,3 +27,9 @@ csv23==0.3.4
 
 # Utilities
 click==8.1.6
+
+# Weather API 
+pyowm==3.3.0
+
+# Data Analysis 
+numpy==1.24.3
