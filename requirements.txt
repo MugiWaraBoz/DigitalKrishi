@@ -1,35 +1,35 @@
 # Web Framework
-flask==2.3.3
+Flask==3.1.2
 
 # Database
 supabase==1.0.3
 
 # Environment Variables
-python-dotenv==1.0.0
+python-dotenv==1.0.1
 
 # HTTP Requests
-requests==2.31.0
+requests==2.32.3
 
 # Date/Time
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
 
 # Data Processing
-pandas==2.0.3
+pandas==2.3.3
 
 # JSON Operations
-simplejson==3.19.1
+simplejson==3.19.2
 
 # Security
-bcrypt==4.0.1
+bcrypt==4.2.1
 
 # CSV Operations
 csv23==0.3.4
 
 # Utilities
-click==8.1.6
+click==8.1.7
 
 # Weather API 
 pyowm==3.3.0
 
 # Data Analysis 
-numpy==1.24.3
+numpy==2.3.3
