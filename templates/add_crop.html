@@ -135,12 +135,19 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
 });
 
-// Load farmer stats (mock data for now)
-function loadFarmerStats() {
-    // In real app, fetch from API
-    document.getElementById('activeBatches').textContent = '3';
-    document.getElementById('totalWeight').textContent = '1,250 kg';
-    document.getElementById('savedFood').textContent = '950 kg';
+// Load farmer stats from API
+async function loadFarmerStats() {
+    try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+            const stats = await response.json();
+            document.getElementById('activeBatches').textContent = stats.active_batches || 0;
+            document.getElementById('totalWeight').textContent = (stats.total_weight || 0).toLocaleString() + ' kg';
+            document.getElementById('savedFood').textContent = (stats.saved_food || 0).toLocaleString() + ' kg';
+        }
+    } catch (error) {
+        console.error('Error loading farmer stats:', error);
+    }
 }
 
 // Load stats when page loads

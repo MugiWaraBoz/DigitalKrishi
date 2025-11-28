@@ -1,0 +1,605 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-lg py-5">
+    <!-- Crop Header -->
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 40px rgba(5,150,105,0.15); margin-bottom: 3rem;">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 style="color: white; font-weight: 800; margin-bottom: 0.5rem;">🌾 {{ crop.crop_type|capitalize }} <span id="cropBatch">ব্যাচ</span></h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">ID: #{{ crop.id }} | <span id="cropStatus">স্থিতি</span>: <span style="font-weight: 700; text-transform: uppercase;">{{ crop.status }}</span></p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light"><span id="btnBackArrow">←</span> <span id="btnBack">ফিরে যান</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Crop Details -->
+        <div class="col-lg-4">
+            <!-- Basic Info Card -->
+            <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">📋 <span id="basicInfoTitle">ফসলের তথ্য</span></h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="cropTypeLabel">ফসলের ধরন</small>
+                        <p style="font-size: 1.2rem; color: #047857; font-weight: 700; margin: 0.5rem 0 0 0;">{{ crop.crop_type|capitalize }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="quantityLabel">পরিমাণ</small>
+                        <p style="font-size: 1.2rem; color: #047857; font-weight: 700; margin: 0.5rem 0 0 0;">{{ crop.estimated_weight }} কেজি</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="harvestDateLabel">ফসলকাটার তারিখ</small>
+                        <p style="font-size: 1.1rem; color: #1e293b; margin: 0.5rem 0 0 0;">📅 {{ crop.harvest_date }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="storageLocLabel">সংরক্ষণ স্থান</small>
+                        <p style="font-size: 1.1rem; color: #1e293b; margin: 0.5rem 0 0 0;">📍 {{ crop.storage_location|capitalize }}</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="storageTypeLabel">সংরক্ষণ পদ্ধতি</small>
+                        <p style="font-size: 1.1rem; color: #1e293b; margin: 0.5rem 0 0 0;">🏗️ {{ crop.storage_type|capitalize }}</p>
+                    </div>
+
+                    <div>
+                        <small style="color: #6b7280; font-weight: 600; text-transform: uppercase;" id="riskLevelLabel">ঝুঁকি স্তর</small>
+                        <p style="margin: 0.5rem 0 0 0;">
+                            <span class="badge bg-{{ 'danger' if crop.current_risk_level == 'high' else 'warning' if crop.current_risk_level == 'medium' else 'success' }}" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                                🔴 {{ crop.current_risk_level|upper }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e5e7eb;">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success" style="padding: 0.75rem; font-weight: 600; border-radius: 10px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;" data-bs-toggle="modal" data-bs-target="#completeHarvestModal">
+                                ✅ ফসলকাটা সম্পন্ন
+                            </button>
+                            <button type="button" class="btn btn-warning" style="padding: 0.75rem; font-weight: 600; border-radius: 10px; border: none;" data-bs-toggle="modal" data-bs-target="#recordLossModal">
+                                📊 ক্ষতি রেকর্ড করুন
+                            </button>
+                            <a href="{{ url_for('crops.add_crop') }}" class="btn btn-outline-success" style="padding: 0.75rem; font-weight: 600; border-radius: 10px;">
+                                ➕ নতুন ব্যাচ যোগ করুন
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Card -->
+            {% if crop.notes %}
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">📝 <span id="notesTitle">মন্তব্য</span></h5>
+                </div>
+                <div class="card-body p-4">
+                    <p style="color: #1e293b; line-height: 1.6;">{{ crop.notes }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Weather & Advisories -->
+        <div class="col-lg-8">
+            <!-- Weather Card -->
+            <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" style="color: white; font-weight: 700;">🌡️ <span id="weatherTitle">আবহাওয়া পূর্বাভাস (পরবর্তী ৭ দিন)</span></h5>
+                        <span id="locationDisplay" style="color: white; font-weight: 600; font-size: 1rem;"></span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3" id="weatherForecastDetail">
+                        <div class="col-12 text-center py-4">
+                            <div class="spinner-border" style="color: #059669;" role="status">
+                                <span class="visually-hidden">লোড হচ্ছে...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Advisory Card -->
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border: none; padding: 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" style="color: white; font-weight: 700;">⚠️ <span id="advisoryTitle">আবহাওয়া ভিত্তিক পরামর্শ এবং ঝুঁকি মূল্যায়ন</span></h5>
+                        <span id="riskBadge" class="badge" style="font-size: 1rem; padding: 0.6rem 1.2rem;"></span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div id="advisoryContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border" style="color: #ec4899;" role="status">
+                                <span class="visually-hidden">পরামর্শ লোড হচ্ছে...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Complete Harvest Modal -->
+<div class="modal fade" id="completeHarvestModal" tabindex="-1" aria-labelledby="completeHarvestLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                <h5 class="modal-title" style="color: white; font-weight: 700;" id="completeHarvestLabel">✅ ফসলকাটা সম্পন্ন করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="estimatedWeightDisplay" class="form-label" id="estimatedWeightLabel">অনুমানিত ওজন</label>
+                    <input type="text" class="form-control" id="estimatedWeightDisplay" readonly style="background: #f3f4f6;">
+                </div>
+                <div class="mb-3">
+                    <label for="actualWeight" class="form-label" id="actualWeightLabel">প্রকৃত ওজন (কেজি) <span style="color: #dc2626;">*</span></label>
+                    <input type="number" class="form-control" id="actualWeight" placeholder="প্রকৃত ওজন এখানে লিখুন" step="0.01" min="0">
+                    <small style="color: #6b7280;" id="actualWeightHint">ফসলকাটার পরে প্রকৃত ওজন দিন</small>
+                </div>
+                <div id="lossCalculation" style="background: rgba(5,150,105,0.05); padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none;">
+                    <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: #047857;" id="lossCalculationTitle">ক্ষতি হিসাব:</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.95rem;">📊 <span id="lossLabel">ক্ষতি:</span> <span id="calculatedLoss" style="font-weight: 600; color: #dc2626;">0%</span></p>
+                    <p style="margin: 0.25rem 0; font-size: 0.95rem;">⚖️ <span id="lostLabel">হারানো:</span> <span id="calculatedLossKg" style="font-weight: 600; color: #dc2626;">0 কেজি</span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBtn">বাতিল</button>
+                <button type="button" class="btn btn-success" onclick="submitCompleteHarvest()" id="submitBtn">সম্পন্ন করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Loss Modal -->
+<div class="modal fade" id="recordLossModal" tabindex="-1" aria-labelledby="recordLossLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <h5 class="modal-title" style="color: white; font-weight: 700;" id="recordLossLabel">📊 ক্ষতি রেকর্ড করুন</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="lossReason" class="form-label" id="lossReasonLabel">ক্ষতির কারণ <span style="color: #dc2626;">*</span></label>
+                    <select class="form-select" id="lossReason">
+                        <option value="" id="selectReasonPlaceholder">-- নির্বাচন করুন --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="lossPercentage" class="form-label" id="lossPercentageLabel">ক্ষতি শতাংশ (%) <span style="color: #dc2626;">*</span></label>
+                    <input type="number" class="form-control" id="lossPercentage" placeholder="0-100" min="0" max="100" step="0.1">
+                </div>
+                <div class="mb-3">
+                    <label for="additionalNotes" class="form-label" id="additionalNotesLabel">অতিরিক্ত মন্তব্য</label>
+                    <textarea class="form-control" id="additionalNotes" rows="3" placeholder="অতিরিক্ত বিবরণ লিখুন (ঐচ্ছিক)"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBtnLoss">বাতিল</button>
+                <button type="button" class="btn btn-warning" onclick="submitRecordLoss()" id="recordBtn">রেকর্ড করুন</button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load weather forecast
+async function loadWeatherForecast() {
+    try {
+        const location = '{{ crop.storage_location|lower }}';
+        console.log('Loading weather for location:', location);
+        const response = await fetch(`/api/weather/${location}`);
+        
+        if (!response.ok) throw new Error('আবহাওয়া তথ্য লোড করা যায়নি');
+        
+        const weather = await response.json();
+        console.log('Weather data received:', weather);
+        
+        // Display district name
+        document.getElementById('locationDisplay').textContent = `📍 ${weather.location_bn || weather.location}`;
+        
+        const container = document.getElementById('weatherForecastDetail');
+        
+        if (weather.forecasts && weather.forecasts.length > 0) {
+            container.innerHTML = weather.forecasts.slice(0, 7).map((day, idx) => {
+                const rainIcon = day.rain_chance > 70 ? '🌧️' : day.rain_chance > 40 ? '⛅' : '☀️';
+                const tempColor = day.temp > 35 ? '#dc2626' : day.temp < 10 ? '#3b82f6' : '#059669';
+                const dayLabel = idx === 0 ? '📅 আজ' : idx === 1 ? '📅 কাল' : `📅 ${idx} দিন পর`;
+                
+                return `
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div style="background: linear-gradient(135deg, rgba(5,150,105,0.05), rgba(5,150,105,0.1)); padding: 1.5rem; border-radius: 12px; border: 2px solid #e5e7eb; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)'" onmouseout="this.style.boxShadow='none'">
+                            <p style="margin: 0; font-weight: 700; color: #047857; font-size: 1rem;">
+                                ${dayLabel}
+                            </p>
+                            <p style="margin: 0; font-size: 0.85rem; color: #6b7280;">${day.date_bn}</p>
+                            <div style="margin-top: 1rem; font-size: 2rem; text-align: center;">${rainIcon}</div>
+                            <p style="margin: 0.75rem 0 0 0; color: ${tempColor}; font-weight: 800; font-size: 1.5rem; text-align: center;">
+                                ${day.temp}°C
+                            </p>
+                            <p style="margin: 0.5rem 0; font-size: 0.8rem; color: #6b7280; text-align: center;">
+                                ${day.temp_min}° - ${day.temp_max}°
+                            </p>
+                            <div style="margin-top: 1rem; font-size: 0.9rem; color: #1e293b; border-top: 1px solid #e5e7eb; padding-top: 0.75rem;">
+                                <p style="margin: 0.3rem 0;">💧 ${day.humidity}%</p>
+                                <p style="margin: 0.3rem 0;">🌧️ ${day.rain_chance.toFixed(0)}%</p>
+                                <p style="margin: 0.3rem 0; color: #059669; font-weight: 600; font-size: 0.85rem; text-transform: capitalize;">${day.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Error loading weather:', error);
+        document.getElementById('weatherForecastDetail').innerHTML = `
+            <div class="col-12">
+                <p class="text-center text-danger" style="font-weight: 600;">আবহাওয়া তথ্য লোড করা যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।</p>
+            </div>
+        `;
+    }
+}
+
+// Load weather advisory with risk assessment
+async function loadWeatherAdvisory() {
+    try {
+        const cropId = '{{ crop.id }}';
+        console.log('Loading advisory for crop:', cropId);
+        const response = await fetch(`/api/weather-advisory/${cropId}`);
+        
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('Advisory error response:', errText);
+            throw new Error('পরামর্শ লোড করা যায়নি');
+        }
+        
+        const data = await response.json();
+        console.log('Advisory data received:', data);
+        
+        // Display risk level badge
+        const riskBadge = document.getElementById('riskBadge');
+        let badgeColor = '#10b981';  // green
+        let badgeText = '✅ কম ঝুঁকি';
+        
+        if (data.risk_level === 'high') {
+            badgeColor = '#dc2626';  // red
+            badgeText = '🔴 উচ্চ ঝুঁকি';
+        } else if (data.risk_level === 'medium') {
+            badgeColor = '#f59e0b';  // amber
+            badgeText = '🟡 মাঝারি ঝুঁকি';
+        }
+        
+        riskBadge.style.backgroundColor = badgeColor;
+        riskBadge.textContent = badgeText;
+        
+        // Display district name in advisory header
+        if (!document.getElementById('locationDisplay').textContent) {
+            document.getElementById('locationDisplay').textContent = `📍 ${data.location_bn || data.location}`;
+        }
+        
+        const container = document.getElementById('advisoryContainer');
+        
+        if (data.advisories && data.advisories.length > 0) {
+            let advisoryHTML = `
+                <div style="background: rgba(236, 72, 153, 0.05); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ec4899;">
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #fce7f3;">
+                        <h6 style="color: #831843; font-weight: 700; margin: 0;">ঝুঁকি বিশ্লেষণ:</h6>
+            `;
+            
+            // Add risk factors
+            if (data.risk_factors && data.risk_factors.length > 0) {
+                advisoryHTML += `<div style="margin-top: 0.5rem;">`;
+                data.risk_factors.forEach(factor => {
+                    advisoryHTML += `<p style="margin: 0.3rem 0; font-size: 0.95rem; color: #be123c;">• ${factor}</p>`;
+                });
+                advisoryHTML += `</div>`;
+            }
+            
+            advisoryHTML += `
+                    </div>
+                    <h6 style="color: #831843; font-weight: 700; margin-bottom: 1rem;">দৈনিক পরামর্শ:</h6>
+            `;
+            
+            data.advisories.forEach((advisory, idx) => {
+                if (idx === 0 && advisory.includes('ঝুঁকি স্তর')) {
+                    advisoryHTML += `
+                        <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: rgba(236, 72, 153, 0.1); border-radius: 8px; font-weight: 600; color: #831843;">
+                            ${advisory}
+                        </div>
+                    `;
+                } else {
+                    advisoryHTML += `
+                        <div style="margin-bottom: 0.75rem; padding: 0.5rem 0; font-size: 0.95rem; line-height: 1.6; color: #1e293b; border-bottom: 1px solid #fce7f3;">
+                            ${advisory}
+                        </div>
+                    `;
+                }
+            });
+            
+            advisoryHTML += `
+                </div>
+            `;
+            
+            container.innerHTML = advisoryHTML;
+        } else {
+            container.innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.05); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #10b981;">
+                    <p style="margin: 0; color: #047857; font-weight: 600;">✅ কোনো বিশেষ সতর্কতা নেই। স্বাভাবিক যত্ন অব্যাহত রাখুন।</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading advisory:', error);
+        document.getElementById('advisoryContainer').innerHTML = `
+            <p class="text-center text-danger" style="font-weight: 600;">পরামর্শ লোড করা যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।</p>
+        `;
+    }
+}
+
+// Complete harvest
+async function submitCompleteHarvest() {
+    const actualWeight = document.getElementById('actualWeight').value;
+    
+    if (!actualWeight || parseFloat(actualWeight) < 0) {
+        alert('অনুগ্রহ করে প্রকৃত ওজন লিখুন');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/crops/{{ crop.id }}/update-actual-weight`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                actual_weight: parseFloat(actualWeight)
+            }),
+            credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert(`✅ ফসলকাটা সম্পন্ন\n\nক্ষতি: ${result.loss_percentage}%\nহারানো: ${result.loss_kg} কেজি`);
+            window.location.href = '{{ url_for("dashboard") }}';
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.error || 'অজানা ত্রুটি';
+            alert(`❌ ত্রুটি:\n${errorMsg}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`❌ নেটওয়ার্ক ত্রুটি:\n${error.message}`);
+    }
+}
+
+// Record loss event
+async function submitRecordLoss() {
+    const lossReason = document.getElementById('lossReason').value;
+    const lossPercentage = document.getElementById('lossPercentage').value;
+    
+    if (!lossReason) {
+        alert('অনুগ্রহ করে ক্ষতির কারণ নির্বাচন করুন');
+        return;
+    }
+    
+    if (!lossPercentage || parseFloat(lossPercentage) < 0 || parseFloat(lossPercentage) > 100) {
+        alert('অনুগ্রহ করে ক্ষতি শতাংশ ০-১০০ এর মধ্যে দিন');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/crops/{{ crop.id }}/record-loss`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                loss_reason: lossReason,
+                loss_percentage: parseFloat(lossPercentage)
+            }),
+            credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+            alert('✅ ক্ষতি সফলভাবে রেকর্ড করা হয়েছে');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('recordLossModal'));
+            modal.hide();
+            // Reset form
+            document.getElementById('lossReason').value = '';
+            document.getElementById('lossPercentage').value = '';
+            // Reload page to show updated loss data
+            window.location.reload();
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.error || 'অজানা ত্রুটি';
+            alert(`❌ ত্রুটি:\n${errorMsg}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`❌ নেটওয়ার্ক ত্রুটি:\n${error.message}`);
+    }
+}
+
+// Load loss reasons into dropdown
+async function loadLossReasons() {
+    try {
+        const response = await fetch('/api/loss-reasons');
+        if (response.ok) {
+            const data = await response.json();
+            const select = document.getElementById('lossReason');
+            data.reasons.forEach(reason => {
+                const option = document.createElement('option');
+                option.value = reason;
+                option.textContent = reason;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading loss reasons:', error);
+    }
+}
+
+// Calculate loss when actual weight changes
+document.getElementById('actualWeight')?.addEventListener('input', function() {
+    const estimated = {{ crop.estimated_weight }};
+    const actual = parseFloat(this.value) || 0;
+    
+    if (actual >= 0 && estimated > 0) {
+        const loss = ((estimated - actual) / estimated) * 100;
+        const lossKg = estimated - actual;
+        
+        document.getElementById('lossCalculation').style.display = 'block';
+        document.getElementById('calculatedLoss').textContent = Math.max(0, loss).toFixed(2) + '%';
+        document.getElementById('calculatedLossKg').textContent = Math.max(0, lossKg).toFixed(2) + ' কেজি';
+    }
+});
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadWeatherForecast();
+    loadWeatherAdvisory();
+    
+    // Pre-fill estimated weight
+    document.getElementById('estimatedWeightDisplay').value = '{{ crop.estimated_weight }} কেজি';
+    
+    // Load loss reasons
+    loadLossReasons();
+    
+    // Apply language translations for crop detail
+    updateCropDetailLanguage();
+});
+
+// Crop detail translations
+const cropDetailTranslations = {
+    'en': {
+        'cropBatch': 'Batch',
+        'cropStatus': 'Status',
+        'btnBackArrow': '←',
+        'btnBack': 'Go Back',
+        'basicInfoTitle': 'Crop Information',
+        'cropTypeLabel': 'Crop Type',
+        'quantityLabel': 'Quantity',
+        'harvestDateLabel': 'Harvest Date',
+        'storageLocLabel': 'Storage Location',
+        'storageTypeLabel': 'Storage Method',
+        'riskLevelLabel': 'Risk Level',
+        'completeHarvestBtn': 'Complete Harvest',
+        'recordLossBtn': 'Record Loss',
+        'addNewBatchBtn': 'Add New Batch',
+        'notesTitle': 'Notes',
+        'weatherTitle': 'Weather Forecast (Next 7 Days)',
+        'advisoryTitle': 'Weather Advisory & Risk Assessment',
+        'completeHarvestLabel': '✅ Complete Harvest',
+        'estimatedWeightLabel': 'Estimated Weight',
+        'actualWeightLabel': 'Actual Weight (kg)',
+        'actualWeightPlaceholder': 'Enter actual weight',
+        'actualWeightHint': 'Provide actual weight after harvest',
+        'lossCalculationTitle': 'Loss Calculation:',
+        'lossLabel': 'Loss:',
+        'lostLabel': 'Lost:',
+        'cancelBtn': 'Cancel',
+        'submitBtn': 'Submit',
+        'cancelBtnLoss': 'Cancel',
+        'recordLossLabel': '📊 Record Loss',
+        'lossReasonLabel': 'Loss Reason',
+        'selectReasonPlaceholder': '-- Select --',
+        'lossPercentageLabel': 'Loss Percentage (%)',
+        'additionalNotesLabel': 'Additional Notes',
+        'additionalNotesPlaceholder': 'Enter additional details (optional)',
+        'recordBtn': 'Record'
+    },
+    'bn': {
+        'cropBatch': 'ব্যাচ',
+        'cropStatus': 'স্থিতি',
+        'btnBackArrow': '←',
+        'btnBack': 'ফিরে যান',
+        'basicInfoTitle': 'ফসলের তথ্য',
+        'cropTypeLabel': 'ফসলের ধরন',
+        'quantityLabel': 'পরিমাণ',
+        'harvestDateLabel': 'ফসলকাটার তারিখ',
+        'storageLocLabel': 'সংরক্ষণ স্থান',
+        'storageTypeLabel': 'সংরক্ষণ পদ্ধতি',
+        'riskLevelLabel': 'ঝুঁকি স্তর',
+        'completeHarvestBtn': 'ফসলকাটা সম্পন্ন',
+        'recordLossBtn': 'ক্ষতি রেকর্ড করুন',
+        'addNewBatchBtn': 'নতুন ব্যাচ যোগ করুন',
+        'notesTitle': 'মন্তব্য',
+        'weatherTitle': 'আবহাওয়া পূর্বাভাস (পরবর্তী ৭ দিন)',
+        'advisoryTitle': 'আবহাওয়া ভিত্তিক পরামর্শ এবং ঝুঁকি মূল্যায়ন',
+        'completeHarvestLabel': '✅ ফসলকাটা সম্পন্ন করুন',
+        'estimatedWeightLabel': 'অনুমানিত ওজন',
+        'actualWeightLabel': 'প্রকৃত ওজন (কেজি)',
+        'actualWeightPlaceholder': 'প্রকৃত ওজন এখানে লিখুন',
+        'actualWeightHint': 'ফসলকাটার পরে প্রকৃত ওজন দিন',
+        'lossCalculationTitle': 'ক্ষতি হিসাব:',
+        'lossLabel': 'ক্ষতি:',
+        'lostLabel': 'হারানো:',
+        'cancelBtn': 'বাতিল',
+        'submitBtn': 'সম্পন্ন করুন',
+        'cancelBtnLoss': 'বাতিল',
+        'recordLossLabel': '📊 ক্ষতি রেকর্ড করুন',
+        'lossReasonLabel': 'ক্ষতির কারণ',
+        'selectReasonPlaceholder': '-- নির্বাচন করুন --',
+        'lossPercentageLabel': 'ক্ষতি শতাংশ (%)',
+        'additionalNotesLabel': 'অতিরিক্ত মন্তব্য',
+        'additionalNotesPlaceholder': 'অতিরিক্ত বিবরণ লিখুন (ঐচ্ছিক)',
+        'recordBtn': 'রেকর্ড করুন'
+    }
+};
+
+// Merge with global translations
+Object.assign(translations['en'], cropDetailTranslations['en']);
+Object.assign(translations['bn'], cropDetailTranslations['bn']);
+
+// Update crop detail page language
+function updateCropDetailLanguage() {
+    const t = translations[currentLang] || translations['en'];
+    const keys = Object.keys(cropDetailTranslations['en']);
+    keys.forEach(key => {
+        const el = document.getElementById(key);
+        if (el && t[key]) {
+            el.textContent = t[key];
+        }
+    });
+    // Handle placeholder attributes specially
+    const placeholders = {
+        'actualWeightPlaceholder': 'actualWeight',
+        'additionalNotesPlaceholder': 'additionalNotes',
+        'selectReasonPlaceholder': 'lossReason'
+    };
+    Object.keys(placeholders).forEach(key => {
+        if (t[key]) {
+            const el = document.getElementById(placeholders[key]);
+            if (el) el.placeholder = t[key];
+        }
+    });
+}
+
+// Listen for language changes
+window.addEventListener('languageChanged', updateCropDetailLanguage);
+</script>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+    }
+    
+    .card-header {
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

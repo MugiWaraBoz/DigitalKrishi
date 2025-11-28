@@ -11,12 +11,12 @@
                         <div style="display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 16px; margin-bottom: 1.5rem;">
                             <span style="font-size: 2rem;">👨‍🌾</span>
                         </div>
-                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;"><span id="profileTitleLabel">Farmer Profile — </span><span id="profileName" style="color: #d1fae5;">{{ farmer.name or session.get('user_name') }}</span></h1>
+                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;"><span id="profileTitle">Farmer Profile</span> — <span id="profileName" style="color: #d1fae5;">{{ farmer.name or session.get('user_name') }}</span></h1>
                         <p id="profileSubtitle" style="font-size: 1.1rem; color: rgba(255,255,255,0.85);">Manage your crop batches and farming data</p>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
-                            <small style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 0.5rem;">Member since</small>
+                            <small style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 0.5rem;" id="memberSinceLabel">Member since</small>
                             <p style="font-size: 1.2rem; color: #ffffff; margin: 0; font-weight: 700;">{{ farmer.created_at[:10] if farmer.created_at else 'Recently' }}</p>
                         </div>
                     </div>
@@ -31,33 +31,33 @@
             <!-- Profile Card -->
             <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">📝 <span id="profileInfoTitle">Profile Information</span></h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="profileInfoTitle">📝 Profile Information</h5>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('auth.update_profile') }}">
                         <div class="mb-3">
-                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Full Name</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;" id="fullNameLabel">Full Name</label>
                             <input type="text" class="form-control" name="name" 
                                    value="{{ farmer.name }}" required
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; transition: all 0.3s ease;">
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Email</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;" id="emailLabel">Email</label>
                             <input type="email" class="form-control" value="{{ farmer.email }}" readonly
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; background: #f3f4f6;">
-                            <small class="text-muted">Email cannot be changed</small>
+                            <small class="text-muted" id="emailCannotChange">Email cannot be changed</small>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Phone</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;" id="phoneLabel">Phone</label>
                             <input type="text" class="form-control" name="phone" 
                                    value="{{ farmer.phone or '' }}" placeholder="Enter phone number"
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
                         </div>
                         
                         <div class="mb-4">
-                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Preferred Language</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;" id="languageLabel">Preferred Language</label>
                             <select class="form-select" name="preferred_language"
                                     style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
                                 <option value="en" {% if farmer.preferred_language == 'en' %}selected{% endif %}>English</option>
@@ -69,7 +69,7 @@
                                 style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" 
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" 
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                            💾 Update Profile
+                            💾 <span id="updateProfileBtnText">Update Profile</span>
                         </button>
                     </form>
                 </div>
@@ -78,7 +78,7 @@
             <!-- Quick Stats -->
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">📊 Your Farming Stats</h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="farmingStatsTitle">📊 Your Farming Stats</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row text-center g-3">
@@ -111,19 +111,19 @@
                     <h5 class="mb-0" style="color: white; font-weight: 700;">🌾 <span id="allBatchesTitle">All Crop Batches</span></h5>
                     <div>
                         <span class="badge" style="background: rgba(255,255,255,0.25); color: white; padding: 0.5rem 1rem; border-radius: 20px;" id="totalCount">0 total</span>
-                        <a id="btnAddNew" href="{{ url_for('crops.add_crop') }}" class="btn btn-light btn-sm ms-2" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">➕ Add New</a>
+                        <a id="btnAddNew" href="{{ url_for('crops.add_crop') }}" class="btn btn-light btn-sm ms-2" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">➕ <span id="addNewText">Add New</span></a>
                     </div>
                 </div>
                 <div class="card-body p-4">
                     <!-- Filter Buttons -->
                     <div class="btn-group w-100 mb-4" role="group" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem;">
-                        <button type="button" class="btn btn-outline-success active" onclick="filterBatches('all')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
+                        <button type="button" class="btn btn-outline-success active" onclick="filterBatches('all')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;" id="btnAllBatches">
                             All Batches
                         </button>
-                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('active')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
+                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('active')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;" id="btnActiveBatches">
                             Active
                         </button>
-                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('completed')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
+                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('completed')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;" id="btnCompletedBatches">
                             Completed
                         </button>
                     </div>
@@ -429,45 +429,66 @@ async function loadProfileStats() {
 // Ensure we load data when the page finishes loading
 document.addEventListener('DOMContentLoaded', function() {
     loadProfileData();
+    // Update content with current language
+    updateContent();
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', function() {
+        updateContent();
+    });
 });
 
 // Add English/Bangla translations for profile page
 const profileTranslations = {
     en: {
-        profileTitleLabel: '👤 Farmer Profile — ',
-        profileSubtitle: 'Manage your crop batches and profile information',
-        btnDashboard: '📊 Dashboard',
-        btnAddBatch: '➕ Add Batch',
+        profileTitle: 'Farmer Profile',
+        profileSubtitle: 'Manage your crop batches and farming data',
+        memberSinceLabel: 'Member since',
         profileInfoTitle: 'Profile Information',
-        updateProfileBtn: 'Update Profile',
+        fullNameLabel: 'Full Name',
+        emailLabel: 'Email',
+        emailCannotChange: 'Email cannot be changed',
+        phoneLabel: 'Phone',
+        languageLabel: 'Preferred Language',
+        updateProfileBtnText: 'Update Profile',
+        farmingStatsTitle: 'Your Farming Stats',
         labelTotalBatches: 'Total Batches',
         labelActive: 'Active',
         labelCompleted: 'Completed',
         labelTotalWeight: 'Total Weight',
         allBatchesTitle: 'All Crop Batches',
-        btnAddNew: '+ Add New'
+        btnAllBatches: 'All Batches',
+        btnActiveBatches: 'Active',
+        btnCompletedBatches: 'Completed',
+        addNewText: 'Add New'
     },
     bn: {
-        profileTitleLabel: '👤 ফার্মারের প্রোফাইল — ',
-        profileSubtitle: 'আপনার ফসল ব্যাচ এবং প্রোফাইল পরিচালনা করুন',
-        btnDashboard: '📊 ড্যাশবোর্ড',
-        btnAddBatch: '➕ ব্যাচ যুক্ত করুন',
+        profileTitle: 'ফার্মারের প্রোফাইল',
+        profileSubtitle: 'আপনার ফসল ব্যাচ এবং চাষের তথ্য পরিচালনা করুন',
+        memberSinceLabel: 'সদস্য হয়েছেন',
         profileInfoTitle: 'প্রোফাইল তথ্য',
-        updateProfileBtn: 'প্রোফাইল আপডেট করুন',
+        fullNameLabel: 'পূর্ণ নাম',
+        emailLabel: 'ইমেল',
+        emailCannotChange: 'ইমেল পরিবর্তন করা যায় না',
+        phoneLabel: 'ফোন',
+        languageLabel: 'পছন্দের ভাষা',
+        updateProfileBtnText: 'প্রোফাইল আপডেট করুন',
+        farmingStatsTitle: 'আপনার চাষের পরিসংখ্যান',
         labelTotalBatches: 'মোট ব্যাচ',
         labelActive: 'সক্রিয়',
         labelCompleted: 'সম্পন্ন',
         labelTotalWeight: 'মোট ওজন',
         allBatchesTitle: 'সমস্ত ফসল ব্যাচ',
-        btnAddNew: '+ নতুন যোগ করুন'
+        btnAllBatches: 'সমস্ত ব্যাচ',
+        btnActiveBatches: 'সক্রিয়',
+        btnCompletedBatches: 'সম্পন্ন',
+        addNewText: 'নতুন যোগ করুন'
     }
 };
 
-// Merge with global translations and apply current language
+// Merge with global translations
 Object.assign(translations.en, profileTranslations.en);
 Object.assign(translations.bn, profileTranslations.bn);
-// Apply translations immediately in case user has a saved language
-document.addEventListener('DOMContentLoaded', updateContent);
 </script>
 
 <style>

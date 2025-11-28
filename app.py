@@ -1,13 +1,15 @@
 from flask import Flask, render_template, session, redirect, url_for, flash
 from modules.auth import auth_bp
 from modules.crops import crops_bp
+from modules.api import api_bp
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for flash messages and sessions
 
-# Register Blueprint
+# Register Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(crops_bp)
+app.register_blueprint(api_bp)
 
 @app.route('/')
 def home():
