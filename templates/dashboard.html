@@ -1,84 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Welcome Section -->
-    <div class="row mb-4">
+<div class="container-lg py-5">
+    <!-- Welcome Hero Section -->
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="bg-success text-white p-4 rounded">
+            <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 20px; padding: 3rem 2rem; box-shadow: 0 10px 40px rgba(5,150,105,0.15);">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h2 class="mb-1">🌾 Welcome, {{ session.user_name }}!</h2>
-                        <p class="mb-0">Your farming dashboard - Monitor crops and reduce food loss</p>
+                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;">🌾 Welcome, <span style="color: #d1fae5;">{{ session.get('user_name', 'Farmer') }}</span>!</h1>
+                        <p style="font-size: 1.1rem; color: rgba(255,255,255,0.85);">Monitor your crops and reduce food loss with real-time insights</p>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <small>Language: {{ session.language|upper }}</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title text-primary" id="activeBatches">0</h5>
-                            <p class="card-text">Active Batches</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="fs-2">🌱</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title text-warning" id="totalWeight">0 kg</h5>
-                            <p class="card-text">Total Storage</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="fs-2">⚖️</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title text-success" id="savedFood">0 kg</h5>
-                            <p class="card-text">Food Saved</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="fs-2">💾</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title text-info" id="successRate">0%</h5>
-                            <p class="card-text">Success Rate</p>
-                        </div>
-                        <div class="align-self-center">
-                            <span class="fs-2">📊</span>
+                        <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                            <small style="color: rgba(255,255,255,0.8); display: block;">Member since</small>
+                            <p style="font-size: 1.3rem; color: #ffffff; margin: 0.5rem 0 0 0; font-weight: 700;">{{ session.get('user_name', 'Farmer')|length }} crops</p>
                         </div>
                     </div>
                 </div>
@@ -86,98 +22,162 @@
         </div>
     </div>
 
-    <div class="row">
-        <!-- Left Column - Actions & Quick Access -->
-        <div class="col-lg-4 mb-4">
-            <!-- Quick Actions -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">🚀 Quick Actions</h5>
+    <!-- Quick Stats Cards - Modern Layout -->
+    <div class="row mb-5 g-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Active Batches</small>
+                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="activeBatches">0</h2>
+                            <small style="color: #6b7280;">Currently monitored</small>
+                        </div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">🌱</div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 65%"></div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success btn-lg">
-                            ➕ Add New Crop Batch
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Storage</small>
+                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="totalWeight">0 kg</h2>
+                            <small style="color: #6b7280;">Combined weight</small>
+                        </div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">⚖️</div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 45%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Food Saved</small>
+                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="savedFood">0 kg</h2>
+                            <small style="color: #6b7280;">Loss prevention</small>
+                        </div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">💾</div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 55%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Success Rate</small>
+                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="successRate">0%</h2>
+                            <small style="color: #6b7280;">Overall performance</small>
+                        </div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">📊</div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px;">
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-4">
+            <!-- Quick Actions Card -->
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1); margin-bottom: 2rem;">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">🚀 Quick Actions</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('crops.add_crop') }}" class="btn" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            ➕ Add New Crop
                         </a>
-                        <a href="#" class="btn btn-outline-primary" onclick="loadWeatherData()">
-                            ️🌤️ Check Weather
+                        <a href="{{ url_for('auth.profile') }}" class="btn" style="background: rgba(5,150,105,0.08); color: #059669; border: 2px solid #059669; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#059669'; this.style.color='white';" onmouseout="this.style.background='rgba(5,150,105,0.08)'; this.style.color='#059669';">
+                            👤 My Profile
                         </a>
-                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-info">
-                            👤 View Profile
-                        </a>
-                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                        <a href="{{ url_for('auth.logout') }}" class="btn" style="background: rgba(220,38,38,0.08); color: #dc2626; border: 2px solid #dc2626; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#dc2626'; this.style.color='white';" onmouseout="this.style.background='rgba(220,38,38,0.08)'; this.style.color='#dc2626';">
                             🚪 Logout
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Achievement Badges -->
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">🏆 Your Badges</h5>
+            <!-- Badges Card -->
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">🏆 Your Achievements</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center" id="badgesContainer">
-                        <!-- Badges will be loaded here -->
-                        <div class="col-12">
-                            <p class="text-muted">No badges yet. Add your first crop batch to earn badges!</p>
+                <div class="card-body p-4">
+                    <div class="row text-center g-3" id="badgesContainer">
+                        <div class="col-4">
+                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👋</div>
+                            <small style="color: #6b7280;">Welcome</small>
+                        </div>
+                        <div class="col-4">
+                            <div style="background: rgba(5,150,105,0.1); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.5;">🌱</div>
+                            <small style="color: #9ca3af;">First Crop</small>
+                        </div>
+                        <div class="col-4">
+                            <div style="background: rgba(5,150,105,0.1); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.5;">💪</div>
+                            <small style="color: #9ca3af;">Expert</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column - Active Batches & Weather -->
+        <!-- Right Column -->
         <div class="col-lg-8">
-            <!-- Active Crop Batches -->
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">🌱 Active Crop Batches</h5>
-                    <span class="badge bg-light text-dark" id="activeCount">0 active</span>
+            <!-- Active Batches Card -->
+            <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">🌱 Active Crop Batches</h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge" style="background: rgba(255,255,255,0.25); color: white; padding: 0.5rem 1rem; border-radius: 20px;" id="activeCount">0 active</span>
+                        <a id="exportCsvBtn" class="btn btn-light btn-sm" href="{{ url_for('crops.export_crops_csv') }}" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">📥 Export</a>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div id="activeBatchesList">
-                        <!-- Batches will be loaded here -->
-                        <div class="text-center py-4">
-                            <p class="text-muted">No active crop batches found.</p>
-                            <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">Add Your First Batch</a>
+                        <div class="text-center py-5">
+                            <div class="spinner-border" style="color: #059669;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3" style="color: #6b7280;">Loading your crop data...</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Weather Alert -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">️🌤️ Weather Advisory</h5>
+            <!-- Weather Card -->
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">🌤️ Weather Advisory</h5>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-warning" id="weatherAlertContainer">
-                        <strong>⚠️ Loading weather information...</strong>
-                        <p id="weatherAlert">Please wait while we fetch the latest weather data.</p>
+                <div class="card-body p-4">
+                    <div style="background: rgba(3, 102, 214, 0.05); padding: 1.5rem; border-left: 4px solid #0284c7; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <p id="weatherAlert" style="margin: 0; color: #1e293b; font-weight: 500;">Loading weather information...</p>
                     </div>
-                    <div class="row text-center" id="weatherForecast">
-                        <!-- Weather data will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">📋 Recent Activity</h5>
-                </div>
-                <div class="card-body">
-                    <div id="recentActivity">
-                        <div class="activity-item border-bottom pb-2 mb-2">
-                            <small class="text-muted">Just now</small>
-                            <p class="mb-1">You logged into your dashboard</p>
-                        </div>
-                        <div class="activity-item">
-                            <small class="text-muted">Welcome!</small>
-                            <p class="mb-1">Start by adding your first crop batch</p>
-                        </div>
+                    <div class="row text-center g-3" id="weatherForecast">
+                        <!-- Weather data loaded here -->
                     </div>
                 </div>
             </div>
@@ -372,6 +372,95 @@ document.addEventListener('DOMContentLoaded', loadDashboardData);
 
 // Auto-refresh every 30 seconds
 setInterval(loadDashboardData, 30000);
+</script>
+
+<script>
+// Dashboard translations (en / bn) - merged into global translations
+const dashboardTranslations = {
+    en: {
+        dashboardTitle: 'Dashboard',
+        activeBatches: 'Active Batches',
+        totalWeightLabel: 'Total Weight',
+        savedFoodLabel: 'Saved Food',
+        successRateLabel: 'Success Rate'
+    },
+    bn: {
+        dashboardTitle: 'ড্যাশবোর্ড',
+        activeBatches: 'সক্রিয় ব্যাচ',
+        totalWeightLabel: 'মোট ওজন',
+        savedFoodLabel: 'সংরক্ষিত খাবার',
+        successRateLabel: 'সাফল্যের হার',
+        exportCsv: 'CSV এক্সপোর্ট'
+    }
+};
+
+Object.assign(translations.en, dashboardTranslations.en);
+Object.assign(translations.bn, dashboardTranslations.bn);
+document.addEventListener('DOMContentLoaded', updateContent);
+
+// Create a floating Export CSV button and CSV export logic
+function createExportButton() {
+    // don't create twice
+    if (document.getElementById('exportCsvBtn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'exportCsvBtn';
+    btn.className = 'btn btn-outline-secondary shadow-sm';
+    btn.style.position = 'fixed';
+    btn.style.bottom = '24px';
+    btn.style.right = '24px';
+    btn.style.zIndex = 1050;
+    btn.style.borderRadius = '8px';
+    btn.textContent = translations[currentLang]?.exportCsv || 'Export CSV';
+    btn.onclick = exportBatchesCSV;
+    document.body.appendChild(btn);
+
+    // update label when language changes
+    window.addEventListener('languageChanged', () => {
+        btn.textContent = translations[currentLang]?.exportCsv || 'Export CSV';
+    });
+}
+
+async function exportBatchesCSV() {
+    try {
+        const resp = await fetch('/api/crops/all', { credentials: 'same-origin' });
+        if (!resp.ok) {
+            alert('Failed to fetch batches for export');
+            return;
+        }
+        const batches = await resp.json();
+        if (!batches || batches.length === 0) {
+            alert('No batches to export');
+            return;
+        }
+
+        const headers = ['id','crop_type','status','estimated_weight','loss_percentage','harvest_date','storage_location','created_at','current_risk_level','notes'];
+        const rows = batches.map(b => headers.map(h => {
+            let v = (b[h] === undefined || b[h] === null) ? '' : String(b[h]);
+            v = v.replace(/"/g, '""');
+            return `"${v}"`;
+        }).join(','));
+
+        const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const date = new Date().toISOString().slice(0,10);
+        a.href = url;
+        a.download = `batches-${date}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error('Error exporting CSV', e);
+        alert('Error exporting CSV: ' + (e.message || e));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    createExportButton();
+});
 </script>
 
 <style>

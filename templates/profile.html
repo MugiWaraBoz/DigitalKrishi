@@ -1,94 +1,102 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Profile Header -->
-    <div class="row mb-4">
+<div class="container-lg py-5">
+    <!-- Profile Hero Section -->
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="bg-primary text-white p-4 rounded">
+            <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 20px; padding: 3rem 2rem; box-shadow: 0 10px 40px rgba(5,150,105,0.15);">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h2 class="mb-1">👤 Farmer Profile</h2>
-                        <p class="mb-0">Manage your crop batches and profile information</p>
+                        <div style="display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(255,255,255,0.15); border-radius: 16px; margin-bottom: 1.5rem;">
+                            <span style="font-size: 2rem;">👨‍🌾</span>
+                        </div>
+                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;"><span id="profileTitleLabel">Farmer Profile — </span><span id="profileName" style="color: #d1fae5;">{{ farmer.name or session.get('user_name') }}</span></h1>
+                        <p id="profileSubtitle" style="font-size: 1.1rem; color: rgba(255,255,255,0.85);">Manage your crop batches and farming data</p>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <small>Member since: {{ farmer.created_at[:10] if farmer.created_at else 'Recently' }}</small>
+                        <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                            <small style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 0.5rem;">Member since</small>
+                            <p style="font-size: 1.2rem; color: #ffffff; margin: 0; font-weight: 700;">{{ farmer.created_at[:10] if farmer.created_at else 'Recently' }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Left Column - Profile Information -->
-        <div class="col-lg-4 mb-4">
+        <div class="col-lg-4">
             <!-- Profile Card -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">📝 Profile Information</h5>
+            <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">📝 <span id="profileInfoTitle">Profile Information</span></h5>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
-                             style="width: 80px; height: 80px;">
-                            <span class="fs-2">👨‍🌾</span>
-                        </div>
-                    </div>
-                    
+                <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('auth.update_profile') }}">
                         <div class="mb-3">
-                            <label class="form-label">Full Name</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Full Name</label>
                             <input type="text" class="form-control" name="name" 
-                                   value="{{ farmer.name }}" required>
+                                   value="{{ farmer.name }}" required
+                                   style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; transition: all 0.3s ease;">
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" value="{{ farmer.email }}" readonly>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Email</label>
+                            <input type="email" class="form-control" value="{{ farmer.email }}" readonly
+                                   style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; background: #f3f4f6;">
                             <small class="text-muted">Email cannot be changed</small>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Phone</label>
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Phone</label>
                             <input type="text" class="form-control" name="phone" 
-                                   value="{{ farmer.phone or '' }}" placeholder="Enter phone number">
+                                   value="{{ farmer.phone or '' }}" placeholder="Enter phone number"
+                                   style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label">Preferred Language</label>
-                            <select class="form-select" name="preferred_language">
+                        <div class="mb-4">
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;">Preferred Language</label>
+                            <select class="form-select" name="preferred_language"
+                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
                                 <option value="en" {% if farmer.preferred_language == 'en' %}selected{% endif %}>English</option>
                                 <option value="bn" {% if farmer.preferred_language == 'bn' %}selected{% endif %}>Bangla</option>
                             </select>
                         </div>
                         
-                        <button type="submit" class="btn btn-success w-100">Update Profile</button>
+                        <button id="updateProfileBtn" type="submit" class="btn w-100" 
+                                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" 
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" 
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            💾 Update Profile
+                        </button>
                     </form>
                 </div>
             </div>
 
             <!-- Quick Stats -->
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">📊 Your Farming Stats</h5>
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">📊 Your Farming Stats</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <h4 class="text-success" id="totalBatches">0</h4>
-                            <small>Total Batches</small>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <h4 class="text-primary" id="activeBatchesCount">0</h4>
-                            <small>Active</small>
+                <div class="card-body p-4">
+                    <div class="row text-center g-3">
+                        <div class="col-6">
+                            <h3 class="text-success" id="totalBatches" style="font-weight: 800; color: #047857;">0</h3>
+                            <small id="labelTotalBatches" style="color: #6b7280;">Total Batches</small>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-info" id="completedBatches">0</h4>
-                            <small>Completed</small>
+                            <h3 class="text-info" id="activeBatchesCount" style="font-weight: 800; color: #0284c7;">0</h3>
+                            <small id="labelActive" style="color: #6b7280;">Active</small>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-secondary" id="totalWeight">0kg</h4>
-                            <small>Total Weight</small>
+                            <h3 style="font-weight: 800; color: #7c3aed;" id="completedBatches">0</h3>
+                            <small id="labelCompleted" style="color: #6b7280;">Completed</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 style="font-weight: 800; color: #059669;" id="totalWeight">0kg</h3>
+                            <small id="labelTotalWeight" style="color: #6b7280;">Total Weight</small>
                         </div>
                     </div>
                 </div>
@@ -98,35 +106,35 @@
         <!-- Right Column - Crop Batch Management -->
         <div class="col-lg-8">
             <!-- All Crop Batches -->
-            <div class="card">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">🌾 All Crop Batches</h5>
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <h5 class="mb-0" style="color: white; font-weight: 700;">🌾 <span id="allBatchesTitle">All Crop Batches</span></h5>
                     <div>
-                        <span class="badge bg-light text-dark me-2" id="totalCount">0 total</span>
-                        <a href="{{ url_for('crops.add_crop') }}" class="btn btn-warning btn-sm">+ Add New</a>
+                        <span class="badge" style="background: rgba(255,255,255,0.25); color: white; padding: 0.5rem 1rem; border-radius: 20px;" id="totalCount">0 total</span>
+                        <a id="btnAddNew" href="{{ url_for('crops.add_crop') }}" class="btn btn-light btn-sm ms-2" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">➕ Add New</a>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <!-- Filter Buttons -->
-                    <div class="btn-group w-100 mb-3" role="group">
-                        <button type="button" class="btn btn-outline-success active" onclick="filterBatches('all')">
+                    <div class="btn-group w-100 mb-4" role="group" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem;">
+                        <button type="button" class="btn btn-outline-success active" onclick="filterBatches('all')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
                             All Batches
                         </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="filterBatches('active')">
+                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('active')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
                             Active
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="filterBatches('completed')">
+                        <button type="button" class="btn btn-outline-success" onclick="filterBatches('completed')" style="font-weight: 600; border-radius: 8px; padding: 0.75rem 1.5rem;">
                             Completed
                         </button>
                     </div>
 
                     <!-- Batch List -->
                     <div id="allBatchesList">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-success" role="status">
+                        <div class="text-center py-5">
+                            <div class="spinner-border" style="color: #059669;" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
-                            <p class="mt-2 text-muted">Loading your crop batches...</p>
+                            <p class="mt-3" style="color: #6b7280;">Loading your crop batches...</p>
                         </div>
                     </div>
                 </div>
@@ -138,10 +146,10 @@
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 1.5rem;">
+                <h5 class="modal-title" id="modalTitle" style="font-weight: 700;">Confirm Action</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="modalBody">
                 Are you sure you want to perform this action?
@@ -422,6 +430,44 @@ async function loadProfileStats() {
 document.addEventListener('DOMContentLoaded', function() {
     loadProfileData();
 });
+
+// Add English/Bangla translations for profile page
+const profileTranslations = {
+    en: {
+        profileTitleLabel: '👤 Farmer Profile — ',
+        profileSubtitle: 'Manage your crop batches and profile information',
+        btnDashboard: '📊 Dashboard',
+        btnAddBatch: '➕ Add Batch',
+        profileInfoTitle: 'Profile Information',
+        updateProfileBtn: 'Update Profile',
+        labelTotalBatches: 'Total Batches',
+        labelActive: 'Active',
+        labelCompleted: 'Completed',
+        labelTotalWeight: 'Total Weight',
+        allBatchesTitle: 'All Crop Batches',
+        btnAddNew: '+ Add New'
+    },
+    bn: {
+        profileTitleLabel: '👤 ফার্মারের প্রোফাইল — ',
+        profileSubtitle: 'আপনার ফসল ব্যাচ এবং প্রোফাইল পরিচালনা করুন',
+        btnDashboard: '📊 ড্যাশবোর্ড',
+        btnAddBatch: '➕ ব্যাচ যুক্ত করুন',
+        profileInfoTitle: 'প্রোফাইল তথ্য',
+        updateProfileBtn: 'প্রোফাইল আপডেট করুন',
+        labelTotalBatches: 'মোট ব্যাচ',
+        labelActive: 'সক্রিয়',
+        labelCompleted: 'সম্পন্ন',
+        labelTotalWeight: 'মোট ওজন',
+        allBatchesTitle: 'সমস্ত ফসল ব্যাচ',
+        btnAddNew: '+ নতুন যোগ করুন'
+    }
+};
+
+// Merge with global translations and apply current language
+Object.assign(translations.en, profileTranslations.en);
+Object.assign(translations.bn, profileTranslations.bn);
+// Apply translations immediately in case user has a saved language
+document.addEventListener('DOMContentLoaded', updateContent);
 </script>
 
 <style>

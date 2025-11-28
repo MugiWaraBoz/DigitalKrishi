@@ -11,7 +11,10 @@ app.register_blueprint(crops_bp)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # If user is logged in, send them to dashboard instead of frontpage
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('frontpage.html')
 
 @app.route('/dashboard')
 def dashboard():
