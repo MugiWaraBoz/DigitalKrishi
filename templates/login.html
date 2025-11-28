@@ -1,11 +1,498 @@
 {% extends "base.html" %}
 
+{% block title %}Login - DigitalKrishi{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Remove all container padding and margins */
+    .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .login-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Blur background effect */
+    .login-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: inherit;
+        filter: blur(8px);
+        transform: scale(1.1);
+        z-index: 1;
+    }
+
+    /* Animated floating elements */
+    .floating-element {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+        z-index: 1;
+    }
+
+    .float-1 {
+        width: 80px;
+        height: 80px;
+        top: 10%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .float-2 {
+        width: 60px;
+        height: 60px;
+        top: 70%;
+        left: 80%;
+        animation-delay: 2s;
+    }
+
+    .float-3 {
+        width: 40px;
+        height: 40px;
+        top: 20%;
+        left: 85%;
+        animation-delay: 4s;
+    }
+
+    .float-4 {
+        width: 50px;
+        height: 50px;
+        top: 80%;
+        left: 15%;
+        animation-delay: 1s;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+        padding: 50px 40px;
+        width: 100%;
+        max-width: 450px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 2;
+        transform: translateY(30px) scale(0.95);
+        opacity: 0;
+        animation: slideUp 0.8s ease forwards 0.3s;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .login-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-green), var(--success-green));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2rem;
+        box-shadow: 0 15px 35px rgba(5, 150, 105, 0.4);
+        transform: scale(0);
+        animation: scaleIn 0.6s ease forwards 0.6s;
+    }
+
+    .login-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin-bottom: 10px;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards 0.8s;
+    }
+
+    .login-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards 1s;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+        transform: translateX(-20px);
+        opacity: 0;
+        animation: slideInRight 0.6s ease forwards;
+    }
+
+    .form-group:nth-child(1) {
+        animation-delay: 1.2s;
+    }
+
+    .form-group:nth-child(2) {
+        animation-delay: 1.4s;
+    }
+
+    .form-control {
+        border: 2px solid rgba(232, 232, 232, 0.8);
+        border-radius: 12px;
+        padding: 15px 20px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(250, 250, 250, 0.8);
+        width: 100%;
+        backdrop-filter: blur(5px);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-green);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .form-control:hover {
+        border-color: var(--primary-green);
+        transform: translateY(-1px);
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        transition: color 0.3s ease;
+    }
+
+    .form-control:focus + .input-icon {
+        color: var(--primary-green);
+    }
+
+    .login-btn {
+        background: linear-gradient(135deg, var(--primary-green), var(--success-green));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3);
+        margin-top: 10px;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards 1.6s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .login-btn:hover::before {
+        left: 100%;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(5, 150, 105, 0.4);
+    }
+
+    .login-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(232, 232, 232, 0.5);
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards 1.8s;
+    }
+
+    .register-link {
+        color: var(--primary-green);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .register-link::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--primary-green);
+        transition: width 0.3s ease;
+    }
+
+    .register-link:hover::after {
+        width: 100%;
+    }
+
+    .register-link:hover {
+        color: var(--dark-green);
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 20px;
+        transform: translateY(20px);
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards 1.4s;
+    }
+
+    .forgot-link {
+        color: #666;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+
+    .forgot-link:hover {
+        color: var(--primary-green);
+    }
+
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    @keyframes slideUp {
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes scaleIn {
+        to {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Button loading animation */
+    .login-btn.loading {
+        pointer-events: none;
+    }
+
+    .login-btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 576px) {
+        .login-card {
+            padding: 40px 25px;
+        }
+        
+        .login-title {
+            font-size: 1.8rem;
+        }
+        
+        .login-wrapper::before {
+            filter: blur(4px);
+        }
+        
+        .floating-element {
+            display: none; /* Hide floating elements on mobile for better performance */
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2 class="text-center mb-4">Farmer Login</h2>
-<form method="POST">
-  <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
-  <input type="password" class="form-control mb-2" name="password" placeholder="Password" required>
-  <button type="submit" class="btn btn-primary w-100">Login</button>
-</form>
-<p class="mt-3 text-center">Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+<div class="login-wrapper">
+    <!-- Floating background elements -->
+    <div class="floating-element float-1"></div>
+    <div class="floating-element float-2"></div>
+    <div class="floating-element float-3"></div>
+    <div class="floating-element float-4"></div>
+    
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h1 class="login-title" id="loginTitle">Farmer Login</h1>
+            <p class="login-subtitle" id="loginSubtitle">Access your DigitalKrishi account</p>
+        </div>
+
+        <form method="POST" id="loginForm">
+            <div class="form-group">
+                <input type="email" class="form-control" name="email" placeholder="Email Address" required id="emailPlaceholder">
+                <i class="fas fa-envelope input-icon"></i>
+            </div>
+
+            <div class="form-group">
+                <input type="password" class="form-control" name="password" placeholder="Password" required id="passwordPlaceholder" id="passwordInput">
+                <i class="fas fa-lock input-icon"></i>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginButton">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                <span>Login to Account</span>
+            </button>
+        </form>
+
+        <div class="forgot-password">
+            <a href="#" class="forgot-link" id="forgotPassword">Forgot your password?</a>
+        </div>
+
+        <div class="login-footer">
+            <p id="noAccount">
+                Don't have an account? 
+            </p>
+            <a href="{{ url_for('auth.register') }}" class="register-link" id="registerLink">Register here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add login page translations
+    const loginTranslations = {
+        en: {
+            loginTitle: "Farmer Login",
+            loginSubtitle: "Access your DigitalKrishi account",
+            emailPlaceholder: "Email Address",
+            passwordPlaceholder: "Password",
+            loginButton: "Login to Account",
+            forgotPassword: "Forgot your password?",
+            noAccount: "Don't have an account?",
+            registerLink: "Register here"
+        },
+        bn: {
+            loginTitle: "কৃষক লগইন",
+            loginSubtitle: "আপনার ডিজিটালকৃষি অ্যাকাউন্ট অ্যাক্সেস করুন",
+            emailPlaceholder: "ইমেইল ঠিকানা",
+            passwordPlaceholder: "পাসওয়ার্ড",
+            loginButton: "অ্যাকাউন্টে লগইন করুন",
+            forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?",
+            noAccount: "অ্যাকাউন্ট নেই?",
+            registerLink: "এখানে নিবন্ধন করুন"
+        }
+    };
+
+    // Merge with existing translations
+    Object.assign(translations, loginTranslations);
+
+    // Update login page content when language changes
+    function updateLoginContent() {
+        const t = translations[currentLang];
+        for (let key in t) {
+            const element = document.getElementById(key);
+            if (element) {
+                if (key === 'emailPlaceholder' || key === 'passwordPlaceholder') {
+                    element.placeholder = t[key];
+                } else if (key === 'loginButton') {
+                    element.querySelector('span').textContent = t[key];
+                } else {
+                    element.textContent = t[key];
+                }
+            }
+        }
+    }
+
+    // Override the updateContent function to include login page
+    const originalUpdateContent = updateContent;
+    updateContent = function() {
+        originalUpdateContent();
+        updateLoginContent();
+    };
+
+    // Form submission animation
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLoginContent();
+        
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginButton');
+        
+        loginForm.addEventListener('submit', function(e) {
+            // Add loading animation
+            loginBtn.classList.add('loading');
+            loginBtn.querySelector('span').style.visibility = 'hidden';
+            loginBtn.querySelector('i').style.visibility = 'hidden';
+            
+            // Simulate loading (remove this in production)
+            setTimeout(() => {
+                loginBtn.classList.remove('loading');
+                loginBtn.querySelector('span').style.visibility = 'visible';
+                loginBtn.querySelector('i').style.visibility = 'visible';
+            }, 2000);
+        });
+
+        // Input focus effects
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    });
+</script>
 {% endblock %}
