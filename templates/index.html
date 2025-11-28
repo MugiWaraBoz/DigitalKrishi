@@ -4,6 +4,7 @@
 <div class="text-center">
     <h1>Welcome to HarvestGuard</h1>
     <p>Reducing food loss in Bangladesh</p>
-    <a href="/register" class="btn btn-success">Get Started</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-success">Get Started</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary ms-2">Login</a>
 </div>
 {% endblock %}

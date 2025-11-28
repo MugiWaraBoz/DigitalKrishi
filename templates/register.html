@@ -441,7 +441,7 @@
             <p class="register-subtitle" id="registerSubtitle">Join DigitalKrishi to protect your harvest</p>
         </div>
 
-        <form method="POST" id="registrationForm">
+        <form method="POST" action="{{ url_for('auth.register') }}" id="registrationForm">
             <!-- Personal Information Section -->
             <div class="form-section">
                 <h3 class="section-title">
@@ -450,7 +450,7 @@
                 </h3>
                 
                 <div class="form-group">
-                    <input type="text" class="form-control" name="full_name" placeholder="Full Name" required id="fullNamePlaceholder">
+                    <input type="text" class="form-control" name="name" placeholder="Full Name" required id="namePlaceholder">
                     <i class="fas fa-user input-icon"></i>
                 </div>
 
@@ -531,7 +531,7 @@
             registerTitle: "Farmer Registration",
             registerSubtitle: "Join DigitalKrishi to protect your harvest",
             personalInfoTitle: "Personal Information",
-            fullNamePlaceholder: "Full Name",
+            namePlaceholder: "Full Name",
             emailPlaceholder: "Email Address",
             phonePlaceholder: "Phone Number",
             languageLabel: "Preferred Language",
@@ -546,7 +546,7 @@
             registerTitle: "কৃষক নিবন্ধন",
             registerSubtitle: "আপনার ফসল রক্ষা করতে ডিজিটালকৃষিতে যোগ দিন",
             personalInfoTitle: "ব্যক্তিগত তথ্য",
-            fullNamePlaceholder: "পুরো নাম",
+            namePlaceholder: "পুরো নাম",
             emailPlaceholder: "ইমেইল ঠিকানা",
             phonePlaceholder: "ফোন নম্বর",
             languageLabel: "পছন্দের ভাষা",
@@ -568,7 +568,7 @@
         for (let key in t) {
             const element = document.getElementById(key);
             if (element) {
-                if (key.includes('Placeholder')) {
+                if (key.includes('Placeholder') || key === 'namePlaceholder') {
                     element.placeholder = t[key];
                 } else if (key === 'registerButton') {
                     element.querySelector('span').textContent = t[key];
@@ -611,7 +611,7 @@
             
             // Store in localStorage for offline capability
             const formData = {
-                full_name: this.querySelector('input[name="full_name"]').value,
+                name: this.querySelector('input[name="name"]').value,
                 email: this.querySelector('input[name="email"]').value,
                 phone: this.querySelector('input[name="phone"]').value,
                 preferred_language: document.getElementById('languageInput').value,

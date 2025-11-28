@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, make_response
+import csv
+import io
 from modules.database import get_supabase
 
 crops_bp = Blueprint('crops', __name__)
@@ -269,4 +271,53 @@ def debug_my_crops():
         })
         
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Export current user's batches as CSV
+@crops_bp.route('/api/crops/export')
+def export_crops_csv():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        supabase = get_supabase()
+        farmer_id = session['user_id']
+
+        rows = supabase.table('crop_batches')\
+            .select('*')\
+            .eq('farmer_id', farmer_id)\
+            .order('created_at', desc=True)\
+            .execute()
+
+        data = rows.data if rows.data else []
+
+        # Define CSV headers and ordering
+        headers = ['id','crop_type','status','estimated_weight','loss_percentage','harvest_date','storage_location','created_at','current_risk_level','notes']
+
+        output = io.StringIO()
+        writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+
+        # Write BOM for Excel compatibility and header row
+        # We'll return bytes with UTF-8 BOM in response later
+        writer.writerow(headers)
+
+        for item in data:
+            row = [item.get(h, '') for h in headers]
+            writer.writerow(row)
+
+        csv_text = output.getvalue()
+        output.close()
+
+        # Prepare response with UTF-8 BOM so Excel recognizes UTF-8
+        bom = '\ufeff'
+        response = make_response(bom + csv_text)
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        from datetime import datetime
+        date = datetime.utcnow().strftime('%Y-%m-%d')
+        response.headers['Content-Disposition'] = f'attachment; filename=batches-{date}.csv'
+        return response
+
+    except Exception as e:
+        print(f"Error exporting CSV: {e}")
         return jsonify({'error': str(e)}), 500
