@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "name": "digital-krishi",
+  "framework": "flask",
+  "buildCommand": "pip install -r requirements.txt",
+  "outputDirectory": ".",
+  "regions": ["iad1"],
+  "env": {
+    "FLASK_ENV": "production",
+    "FLASK_DEBUG": "0",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "functions": {
+    "app.py": {
+      "runtime": "python3.14",
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "wsgi.py": {
+      "runtime": "python3.14",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+    }
+  ]
+}
+
