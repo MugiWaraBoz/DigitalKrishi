@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, session, redirect, url_for, flash
 from modules.database import get_supabase
 import re
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint('auth', __name__)
 
 def validate_email(email):
     """Validate email format"""
@@ -33,19 +33,12 @@ def register():
             flash('Email, password, and name are required', 'error')
             return redirect(url_for('auth.register'))
 
-        if not validate_email(email):
-            flash('Invalid email format', 'error')
-            return redirect(url_for('auth.register'))
-
-        is_valid_pwd, pwd_msg = validate_password(password)
-        if not is_valid_pwd:
-            flash(pwd_msg, 'error')
-            return redirect(url_for('auth.register'))
-
         supabase = get_supabase()
         if not supabase:
             flash('Database connection error', 'error')
             return redirect(url_for('auth.register'))
+
+        print(f"Attempting to register: {email}")  # Debug
 
         # Create auth user
         auth_response = supabase.auth.sign_up({
@@ -53,34 +46,40 @@ def register():
             "password": password,
         })
 
+        print(f"Auth response: {auth_response}")  # Debug
+
         if auth_response.user:
-            # Create farmer profile
+            print(f"User created with ID: {auth_response.user.id}")  # Debug
+            
+            # Create farmer profile in farmers table
             farmer_data = {
-                'id': auth_response.user.id,
+                'id': auth_response.user.id,  # Use the same ID as auth user
                 'email': email,
                 'name': name,
                 'phone': phone,
-                'preferred_language': preferred_language,
-                'password': password  # Storing hashed version from auth
+                'preferred_language': preferred_language
             }
 
+            print(f"Creating farmer profile: {farmer_data}")  # Debug
+            
             farmer_response = supabase.table('farmers').insert(farmer_data).execute()
 
+            print(f"Farmer response: {farmer_response}")  # Debug
+
             if farmer_response.data:
-                flash('Registration successful! Please login.', 'success')
+                flash('Registration successful! You can now login.', 'success')
                 return redirect(url_for('auth.login'))
             else:
-                # If farmer profile creation fails, delete the auth user
-                supabase.auth.admin.delete_user(auth_response.user.id)
                 flash('Failed to create farmer profile', 'error')
                 return redirect(url_for('auth.register'))
 
         else:
             error_msg = auth_response.get('message', 'Registration failed')
-            flash(error_msg, 'error')
+            flash(f'Registration failed: {error_msg}', 'error')
             return redirect(url_for('auth.register'))
 
     except Exception as e:
+        print(f"Registration error: {str(e)}")  # Debug
         error_msg = str(e)
         if 'User already registered' in error_msg:
             flash('Email already registered', 'error')
@@ -107,16 +106,22 @@ def login():
             flash('Database connection error', 'error')
             return redirect(url_for('auth.login'))
 
+        print(f"Login attempt: {email}")  # Debug
+
         # Authenticate user
         auth_response = supabase.auth.sign_in_with_password({
             "email": email,
             "password": password
         })
 
+        print(f"Login auth response: {auth_response}")  # Debug
+
         if auth_response.user:
             # Get farmer profile
             farmer_response = supabase.table('farmers').select('*').eq('id', auth_response.user.id).execute()
             
+            print(f"Farmer lookup: {farmer_response}")  # Debug
+
             if farmer_response.data:
                 farmer = farmer_response.data[0]
                 
@@ -130,13 +135,32 @@ def login():
                 flash(f'Welcome back, {farmer["name"]}!', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                flash('Farmer profile not found', 'error')
-                return redirect(url_for('auth.login'))
+                # If farmer profile doesn't exist, create it
+                farmer_data = {
+                    'id': auth_response.user.id,
+                    'email': email,
+                    'name': auth_response.user.user_metadata.get('name', 'Farmer'),
+                    'preferred_language': 'en'
+                }
+                
+                create_response = supabase.table('farmers').insert(farmer_data).execute()
+                if create_response.data:
+                    session['user_id'] = auth_response.user.id
+                    session['user_email'] = email
+                    session['user_name'] = farmer_data['name']
+                    session['language'] = 'en'
+                    
+                    flash(f'Welcome, {farmer_data["name"]}!', 'success')
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('Profile created but login failed', 'error')
+                    return redirect(url_for('auth.login'))
         else:
             flash('Invalid email or password', 'error')
             return redirect(url_for('auth.login'))
 
     except Exception as e:
+        print(f"Login error: {str(e)}")  # Debug
         error_msg = str(e)
         if 'Invalid login credentials' in error_msg:
             flash('Invalid email or password', 'error')

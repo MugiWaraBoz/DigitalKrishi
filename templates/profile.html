@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-primary text-white p-4 rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">👤 Farmer Profile</h2>
+                        <p class="mb-0">Manage your crop batches and profile information</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <small>Member since: {{ farmer.created_at[:10] if farmer.created_at else 'Recently' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Information -->
+        <div class="col-lg-4 mb-4">
+            <!-- Profile Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📝 Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px;">
+                            <span class="fs-2">👨‍🌾</span>
+                        </div>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" 
+                                   value="{{ farmer.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="{{ farmer.email }}" readonly>
+                            <small class="text-muted">Email cannot be changed</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" name="phone" 
+                                   value="{{ farmer.phone or '' }}" placeholder="Enter phone number">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Preferred Language</label>
+                            <select class="form-select" name="preferred_language">
+                                <option value="en" {% if farmer.preferred_language == 'en' %}selected{% endif %}>English</option>
+                                <option value="bn" {% if farmer.preferred_language == 'bn' %}selected{% endif %}>Bangla</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">📊 Your Farming Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success" id="totalBatches">0</h4>
+                            <small>Total Batches</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary" id="activeBatchesCount">0</h4>
+                            <small>Active</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-info" id="completedBatches">0</h4>
+                            <small>Completed</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-secondary" id="totalWeight">0kg</h4>
+                            <small>Total Weight</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Crop Batch Management -->
+        <div class="col-lg-8">
+            <!-- All Crop Batches -->
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🌾 All Crop Batches</h5>
+                    <div>
+                        <span class="badge bg-light text-dark me-2" id="totalCount">0 total</span>
+                        <a href="{{ url_for('crops.add_crop') }}" class="btn btn-warning btn-sm">+ Add New</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Buttons -->
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <button type="button" class="btn btn-outline-success active" onclick="filterBatches('all')">
+                            All Batches
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="filterBatches('active')">
+                            Active
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="filterBatches('completed')">
+                            Completed
+                        </button>
+                    </div>
+
+                    <!-- Batch List -->
+                    <div id="allBatchesList">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading your crop batches...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Are you sure you want to perform this action?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load profile data
+async function loadProfileData() {
+    console.log("🔄 Loading profile data...");
+    try {
+        await loadAllBatches();
+        await loadProfileStats();
+    } catch (error) {
+        console.error('❌ Error loading profile data:', error);
+        showError('Failed to load profile data: ' + error.message);
+    }
+}
+
+// Load all batches
+async function loadAllBatches() {
+    try {
+        console.log("🌱 Fetching all batches from /api/crops/all");
+        const response = await fetch('/api/crops/all', { credentials: 'same-origin' });
+        
+        console.log("🌱 Response status:", response.status);
+        
+        if (response.ok) {
+            const batches = await response.json();
+            console.log("🌱 Received batches:", batches);
+            displayAllBatches(batches);
+        } else {
+            const errorData = await response.json();
+            console.error("❌ API Error:", errorData);
+            showError('Failed to load batches: ' + (errorData.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('❌ Network error loading batches:', error);
+        showError('Network error loading batches: ' + error.message);
+    }
+}
+
+// Display all batches
+function displayAllBatches(batches) {
+    console.log("📋 Displaying batches:", batches);
+
+    const batchesList = document.getElementById('allBatchesList');
+
+    // save last fetched batches for filtering and counts
+    window.__lastBatches = batches || [];
+
+    if (!batches || batches.length === 0) {
+        console.log("📋 No batches to display");
+        batchesList.innerHTML = `
+            <div class="text-center py-4">
+                <p class="text-muted">No crop batches found.</p>
+                <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">Add Your First Batch</a>
+            </div>
+        `;
+        return;
+    }
+
+    console.log("📋 Rendering", batches.length, "batches");
+    batchesList.innerHTML = batches.map(batch => `
+        <div class="batch-item card mb-3 ${batch.status === 'completed' ? 'border-secondary' : 'border-success'}" data-status="${batch.status}">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <h6 class="mb-1 text-capitalize">${batch.crop_type || 'Crop'}</h6>
+                        <small class="text-muted d-block">
+                            📍 ${batch.storage_location || 'Unknown'} • 
+                            🗓️ ${new Date(batch.harvest_date).toLocaleDateString()}
+                        </small>
+                        <small class="text-muted">
+                            Created: ${new Date(batch.created_at).toLocaleDateString()}
+                        </small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar ${getStatusColor(batch.status)}" 
+                                 style="width: ${batch.status === 'completed' ? 100 : 70}%"></div>
+                        </div>
+                        <small>${batch.estimated_weight || 0} kg</small>
+                        ${batch.notes ? `<br><small class="text-muted">${batch.notes}</small>` : ''}
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="badge ${getStatusBadge(batch.status)}">
+                            ${batch.status.toUpperCase()}
+                        </span>
+                        <br>
+                        <small class="text-muted ${getRiskLevelColor(batch.current_risk_level)}">
+                            ${(batch.current_risk_level || 'low').toUpperCase()} risk
+                        </small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        ${batch.status === 'active' ? `
+                            <button class="btn btn-warning btn-sm mb-1" onclick="completeBatch('${batch.id}')">
+                                ✅ Complete
+                            </button>
+                            <br>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteBatch('${batch.id}')">
+                                🗑️ Delete
+                            </button>
+                        ` : `
+                            <button class="btn btn-success btn-sm mb-1" onclick="reactivateBatch('${batch.id}')">
+                                🔄 Reactivate
+                            </button>
+                            <br>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteBatch('${batch.id}')">
+                                🗑️ Delete
+                            </button>
+                        `}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    updateBatchCounts(batches);
+}
+
+// Show error message (better version)
+function showError(message) {
+    const batchesList = document.getElementById('allBatchesList');
+    batchesList.innerHTML = `
+        <div class="alert alert-danger">
+            <strong>❌ Error:</strong> ${message}
+            <br><br>
+            <button onclick="loadProfileData()" class="btn btn-warning btn-sm">Try Again</button>
+            <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success btn-sm">Add New Batch</a>
+        </div>
+    `;
+}
+
+// ----------------- Helper UI functions -----------------
+function getStatusColor(status) {
+    if (!status) return 'bg-info';
+    status = status.toLowerCase();
+    if (status === 'completed') return 'bg-secondary';
+    if (status === 'active') return 'bg-success';
+    return 'bg-info';
+}
+
+function getStatusBadge(status) {
+    if (!status) return 'badge bg-info';
+    status = status.toLowerCase();
+    if (status === 'completed') return 'badge bg-secondary';
+    if (status === 'active') return 'badge bg-success';
+    return 'badge bg-info';
+}
+
+function getRiskLevelColor(risk) {
+    if (!risk) return 'text-success';
+    risk = risk.toLowerCase();
+    if (risk === 'high') return 'text-danger';
+    if (risk === 'medium') return 'text-warning';
+    return 'text-success';
+}
+
+function updateBatchCounts(batches) {
+    batches = batches || window.__lastBatches || [];
+    const total = batches.length;
+    const active = batches.filter(b => (b.status || '').toLowerCase() === 'active').length;
+    const completed = batches.filter(b => (b.status || '').toLowerCase() === 'completed').length;
+    const totalWeight = batches.reduce((s, b) => s + (parseFloat(b.estimated_weight) || 0), 0);
+
+    const elTotal = document.getElementById('totalBatches');
+    const elActive = document.getElementById('activeBatchesCount');
+    const elCompleted = document.getElementById('completedBatches');
+    const elWeight = document.getElementById('totalWeight');
+    const badge = document.getElementById('totalCount');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elActive) elActive.textContent = active;
+    if (elCompleted) elCompleted.textContent = completed;
+    if (elWeight) elWeight.textContent = totalWeight + 'kg';
+    if (badge) badge.textContent = total + ' total';
+}
+
+function filterBatches(mode) {
+    // update button active classes
+    document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+    const buttons = Array.from(document.querySelectorAll('.btn-group .btn'));
+    const matched = buttons.find(b => b.textContent.trim().toLowerCase().includes(mode));
+    if (matched) matched.classList.add('active');
+
+    const items = document.querySelectorAll('.batch-item');
+    items.forEach(it => {
+        const status = it.getAttribute('data-status') || '';
+        if (mode === 'all') {
+            it.style.display = '';
+        } else if (mode === 'active') {
+            it.style.display = (status.toLowerCase() === 'active') ? '' : 'none';
+        } else if (mode === 'completed') {
+            it.style.display = (status.toLowerCase() === 'completed') ? '' : 'none';
+        }
+    });
+}
+
+async function completeBatch(id) {
+    if (!confirm('Mark this batch as completed?')) return;
+    try {
+        const res = await fetch(`/api/crops/${id}/complete`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            await loadAllBatches();
+        } else {
+            const err = await res.json().catch(()=>({error:'unknown'}));
+            alert('Failed to complete batch: ' + (err.error || res.status));
+        }
+    } catch (e) {
+        alert('Network error: ' + e.message);
+    }
+}
+
+async function reactivateBatch(id) {
+    if (!confirm('Reactivate this batch?')) return;
+    try {
+        const res = await fetch(`/api/crops/${id}/reactivate`, { method: 'POST', credentials: 'same-origin' });
+        if (res.ok) {
+            await loadAllBatches();
+        } else {
+            const err = await res.json().catch(()=>({error:'unknown'}));
+            alert('Failed to reactivate batch: ' + (err.error || res.status));
+        }
+    } catch (e) {
+        alert('Network error: ' + e.message);
+    }
+}
+
+async function deleteBatch(id) {
+    if (!confirm('Delete this batch permanently?')) return;
+    try {
+        const res = await fetch(`/api/crops/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (res.ok) {
+            await loadAllBatches();
+        } else {
+            const err = await res.json().catch(()=>({error:'unknown'}));
+            alert('Failed to delete batch: ' + (err.error || res.status));
+        }
+    } catch (e) {
+        alert('Network error: ' + e.message);
+    }
+}
+
+// Load simple profile stats and update UI
+async function loadProfileStats() {
+    try {
+        console.log("📊 Fetching dashboard stats from /api/dashboard/stats");
+        const resp = await fetch('/api/dashboard/stats', { credentials: 'same-origin' });
+        if (!resp.ok) {
+            console.warn('Unable to load stats', resp.status);
+            return;
+        }
+        const stats = await resp.json();
+        console.log('📊 Stats received', stats);
+
+        document.getElementById('totalBatches').textContent = (stats.active_batches || 0) + ' (may vary)';
+        document.getElementById('activeBatchesCount').textContent = stats.active_batches || 0;
+        document.getElementById('totalWeight').textContent = (stats.total_weight || 0) + 'kg';
+        // completedBatches not provided by endpoint; leave as-is or compute if needed
+        const totalBadge = document.getElementById('totalCount');
+        if (totalBadge) totalBadge.textContent = (stats.active_batches || 0) + ' active';
+
+    } catch (e) {
+        console.error('❌ Error loading profile stats:', e);
+    }
+}
+
+// Ensure we load data when the page finishes loading
+document.addEventListener('DOMContentLoaded', function() {
+    loadProfileData();
+});
+</script>
+
+<style>
+.batch-item:hover {
+    background-color: #f8f9fa;
+}
+
+.batch-item.card {
+    transition: all 0.3s ease;
+}
+
+.batch-item.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-group .btn.active {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
+{% endblock %}
