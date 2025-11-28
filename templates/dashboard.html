@@ -8,13 +8,14 @@
             <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 20px; padding: 3rem 2rem; box-shadow: 0 10px 40px rgba(5,150,105,0.15);">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;">🌾 Welcome, <span style="color: #d1fae5;">{{ session.get('user_name', 'Farmer') }}</span>!</h1>
-                        <p style="font-size: 1.1rem; color: rgba(255,255,255,0.85);">Monitor your crops and reduce food loss with real-time insights</p>
+                        <h1 style="font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;"><span id="dashWelcome">🌾 Welcome</span>, <span style="color: #d1fae5;">{{ session.get('user_name', 'Farmer') }}</span>!</h1>
+                        <p style="font-size: 1.1rem; color: rgba(255,255,255,0.85);" id="dashSubtitle">Monitor your crops and reduce food loss with real-time insights</p>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
-                            <small style="color: rgba(255,255,255,0.8); display: block;">Member since</small>
-                            <p style="font-size: 1.3rem; color: #ffffff; margin: 0.5rem 0 0 0; font-weight: 700;">{{ session.get('user_name', 'Farmer')|length }} crops</p>
+                            <small style="color: rgba(255,255,255,0.8); display: block;" id="dashMemberSince">Member since</small>
+                            <p style="font-size: 1.3rem; color: #ffffff; margin: 0.5rem 0 0 0; font-weight: 700;" id="dashCropCount">0</p>
+                            <p style="font-size: 0.95rem; color: rgba(255,255,255,0.9); margin: 0.75rem 0 0 0;" id="dashMemberDate">--</p>
                         </div>
                     </div>
                 </div>
@@ -29,73 +30,74 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Active Batches</small>
+                            <small id="dashLabel1" style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Active Batches</small>
                             <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="activeBatches">0</h2>
-                            <small style="color: #6b7280;">Currently monitored</small>
+                            <small id="dashSub1" style="color: #6b7280;">Currently monitored</small>
                         </div>
                         <div style="font-size: 2.5rem; opacity: 0.8;">🌱</div>
                     </div>
                     <div class="progress mt-3" style="height: 4px;">
-                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 65%"></div>
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981); width: 65%"></div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Storage</small>
+                            <small id="dashLabel2" style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Storage</small>
                             <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="totalWeight">0 kg</h2>
-                            <small style="color: #6b7280;">Combined weight</small>
+                            <small id="dashSub2" style="color: #6b7280;">Combined weight</small>
                         </div>
-                        <div style="font-size: 2.5rem; opacity: 0.8;">⚖️</div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">📦</div>
                     </div>
                     <div class="progress mt-3" style="height: 4px;">
-                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 45%"></div>
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981); width: 45%"></div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Food Saved</small>
-                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="savedFood">0 kg</h2>
-                            <small style="color: #6b7280;">Loss prevention</small>
+                            <small id="dashLabel3" style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Food Saved</small>
+                            <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="foodSaved">0 kg</h2>
+                            <small id="dashSub3" style="color: #6b7280;">Loss prevention</small>
                         </div>
-                        <div style="font-size: 2.5rem; opacity: 0.8;">💾</div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">🥗</div>
                     </div>
                     <div class="progress mt-3" style="height: 4px;">
-                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 55%"></div>
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981); width: 75%"></div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <small style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Success Rate</small>
+                            <small id="dashLabel4" style="color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Success Rate</small>
                             <h2 class="mt-2" style="color: #047857; font-weight: 800;" id="successRate">0%</h2>
-                            <small style="color: #6b7280;">Overall performance</small>
+                            <small id="dashSub4" style="color: #6b7280;">Overall performance</small>
                         </div>
-                        <div style="font-size: 2.5rem; opacity: 0.8;">📊</div>
+                        <div style="font-size: 2.5rem; opacity: 0.8;">📈</div>
                     </div>
                     <div class="progress mt-3" style="height: 4px;">
-                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981);" style="width: 85%"></div>
+                        <div class="progress-bar" style="background: linear-gradient(90deg, #059669, #10b981); width: 85%"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+
+
 
     <div class="row g-4">
         <!-- Left Column -->
@@ -103,18 +105,18 @@
             <!-- Quick Actions Card -->
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1); margin-bottom: 2rem;">
                 <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">🚀 Quick Actions</h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="quickActionsTitle">🚀 Quick Actions</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="d-grid gap-3">
                         <a href="{{ url_for('crops.add_crop') }}" class="btn" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                            ➕ Add New Crop
+                            ➕ <span id="btnAddCrop">Add New Crop</span>
                         </a>
                         <a href="{{ url_for('auth.profile') }}" class="btn" style="background: rgba(5,150,105,0.08); color: #059669; border: 2px solid #059669; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#059669'; this.style.color='white';" onmouseout="this.style.background='rgba(5,150,105,0.08)'; this.style.color='#059669';">
-                            👤 My Profile
+                            👤 <span id="btnMyProfile">My Profile</span>
                         </a>
                         <a href="{{ url_for('auth.logout') }}" class="btn" style="background: rgba(220,38,38,0.08); color: #dc2626; border: 2px solid #dc2626; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#dc2626'; this.style.color='white';" onmouseout="this.style.background='rgba(220,38,38,0.08)'; this.style.color='#dc2626';">
-                            🚪 Logout
+                            🚪 <span id="btnLogout">Logout</span>
                         </a>
                     </div>
                 </div>
@@ -123,21 +125,27 @@
             <!-- Badges Card -->
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">🏆 Your Achievements</h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="achievementsTitle">🏆 Your Achievements</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row text-center g-3" id="badgesContainer">
                         <div class="col-4">
-                            <div style="background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👋</div>
-                            <small style="color: #6b7280;">Welcome</small>
+                            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px;">
+                                👋
+                            </div>
+                            <small>Welcome</small>
                         </div>
                         <div class="col-4">
-                            <div style="background: rgba(5,150,105,0.1); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.5;">🌱</div>
-                            <small style="color: #9ca3af;">First Crop</small>
+                            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px; opacity: 0.5;">
+                                🌱
+                            </div>
+                            <small>First Crop</small>
                         </div>
                         <div class="col-4">
-                            <div style="background: rgba(5,150,105,0.1); width: 60px; height: 60px; border-radius: 12px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.5;">💪</div>
-                            <small style="color: #9ca3af;">Expert</small>
+                            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px; opacity: 0.5;">
+                                💪
+                            </div>
+                            <small>Risk Master</small>
                         </div>
                     </div>
                 </div>
@@ -149,10 +157,11 @@
             <!-- Active Batches Card -->
             <div class="card border-0 mb-4" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">🌱 Active Crop Batches</h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="activeBatchesTitle">🌱 Active Crop Batches</h5>
                     <div class="d-flex gap-2">
                         <span class="badge" style="background: rgba(255,255,255,0.25); color: white; padding: 0.5rem 1rem; border-radius: 20px;" id="activeCount">0 active</span>
-                        <a id="exportCsvBtn" class="btn btn-light btn-sm" href="{{ url_for('crops.export_crops_csv') }}" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;">📥 Export</a>
+                        <a id="exportCsvBtn" class="btn btn-light btn-sm" href="{{ url_for('api.export_crops_csv') }}" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;" title="Export batches to CSV"><span id="exportBtn">📥 Export</span></a>
+                        <a id="exportLossBtn" class="btn btn-light btn-sm" href="{{ url_for('api.export_loss_events_csv') }}" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600;" title="Export loss/damage data to CSV"><span id="exportLossText">📊 Export Loss</span></a>
                     </div>
                 </div>
                 <div class="card-body p-4">
@@ -170,7 +179,7 @@
             <!-- Weather Card -->
             <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
                 <div class="card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;">🌤️ Weather Advisory</h5>
+                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="weatherTitle">🌤️ Weather Advisory</h5>
                 </div>
                 <div class="card-body p-4">
                     <div style="background: rgba(3, 102, 214, 0.05); padding: 1.5rem; border-left: 4px solid #0284c7; border-radius: 8px; margin-bottom: 1.5rem;">
@@ -188,9 +197,66 @@
 
 {% block scripts %}
 <script>
+// Translation dictionary for dashboard - DEFINE FIRST
+const dashboardTranslations = {
+    'en': {
+        'dashLabel1': 'Active Batches',
+        'dashSub1': 'Currently monitored',
+        'dashLabel2': 'Total Storage',
+        'dashSub2': 'Combined weight',
+        'dashLabel3': 'Food Saved',
+        'dashSub3': 'Loss prevention',
+        'dashLabel4': 'Success Rate',
+        'dashSub4': 'Overall performance',
+        'quickActionsTitle': '🚀 Quick Actions',
+        'btnAddCrop': 'Add New Crop',
+        'btnMyProfile': 'My Profile',
+        'btnLogout': 'Logout',
+        'achievementsTitle': '🏆 Your Achievements',
+        'activeBatchesTitle': '🌱 Active Crop Batches',
+        'exportBtn': '📥 Export',
+        'exportLossText': '📊 Export Loss',
+        'weatherTitle': '🌤️ Weather Advisory',
+        'dashWelcome': '🌾 Welcome',
+        'dashSubtitle': 'Monitor your crops and reduce food loss with real-time insights',
+        'dashMemberSince': 'Member since',
+        'dashCropCount': 'crops'
+    },
+    'bn': {
+        'dashLabel1': 'সক্রিয় ব্যাচ',
+        'dashSub1': 'বর্তমানে পর্যবেক্ষণ করা',
+        'dashLabel2': 'মোট সংগ্রহ',
+        'dashSub2': 'সম্মিলিত ওজন',
+        'dashLabel3': 'খাদ্য সংরক্ষিত',
+        'dashSub3': 'ক্ষতি প্রতিরোধ',
+        'dashLabel4': 'সাফল্যের হার',
+        'dashSub4': 'সামগ্রিক কর্মক্ষমতা',
+        'quickActionsTitle': '🚀 দ্রুত পদক্ষেপ',
+        'btnAddCrop': 'নতুন ফসল যোগ করুন',
+        'btnMyProfile': 'আমার প্রোফাইল',
+        'btnLogout': 'লগআউট',
+        'achievementsTitle': '🏆 আপনার অর্জন',
+        'activeBatchesTitle': '🌱 সক্রিয় ফসলের ব্যাচ',
+        'exportBtn': '📥 রপ্তানি',
+        'exportLossText': '📊 ক্ষতি রপ্তানি',
+        'weatherTitle': '🌤️ আবহাওয়া পরামর্শ',
+        'dashWelcome': '🌾 স্বাগতম',
+        'dashSubtitle': 'আপনার ফসল পর্যবেক্ষণ করুন এবং রিয়েল-টাইম অন্তর্দৃষ্টি সহ খাদ্য ক্ষতি কমান',
+        'dashMemberSince': 'সদস্য হয়েছেন',
+        'dashCropCount': 'ফসল'
+    }
+};
+
+// Merge dashboard translations into global translations
+Object.assign(translations['en'], dashboardTranslations['en']);
+Object.assign(translations['bn'], dashboardTranslations['bn']);
+
 // Load dashboard data
 async function loadDashboardData() {
     try {
+        // Load user info first (for member since)
+        await loadUserInfo();
+        
         // Load crop stats
         await loadCropStats();
         
@@ -208,15 +274,32 @@ async function loadDashboardData() {
     }
 }
 
+// Load user information
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/api/user/info');
+        if (response.ok) {
+            const userInfo = await response.json();
+            // Display member since date below crops count
+            const memberDateElement = document.getElementById('dashMemberDate');
+            
+            if (userInfo.created_at_bn) {
+                memberDateElement.textContent = userInfo.created_at_bn;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+    }
+}
+
 // Load crop statistics
 async function loadCropStats() {
     try {
-        const response = await fetch('/api/dashboard/stats');  // Changed from '/api/crops/stats'
+        const response = await fetch('/api/dashboard/stats');
         if (response.ok) {
             const stats = await response.json();
             updateStatsDisplay(stats);
         } else {
-            // Use default stats if API fails
             updateStatsDisplay({
                 active_batches: 0,
                 total_weight: 0,
@@ -239,15 +322,32 @@ async function loadCropStats() {
 function updateStatsDisplay(stats) {
     document.getElementById('activeBatches').textContent = stats.active_batches || 0;
     document.getElementById('totalWeight').textContent = (stats.total_weight || 0) + ' kg';
-    document.getElementById('savedFood').textContent = (stats.saved_food || 0) + ' kg';
+    document.getElementById('foodSaved').textContent = (stats.saved_food || 0) + ' kg';
     document.getElementById('successRate').textContent = (stats.success_rate || 0) + '%';
     document.getElementById('activeCount').textContent = (stats.active_batches || 0) + ' active';
+    document.getElementById('dashCropCount').textContent = stats.active_batches || 0;
+    updateLanguageForStats();
+}
+
+// Update stats labels based on current language
+function updateLanguageForStats() {
+    const t = translations[currentLang] || translations['en'];
+    const statIds = [
+        'dashLabel1', 'dashSub1', 'dashLabel2', 'dashSub2',
+        'dashLabel3', 'dashSub3', 'dashLabel4', 'dashSub4'
+    ];
+    statIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) {
+            el.textContent = t[id];
+        }
+    });
 }
 
 // Load active batches
 async function loadActiveBatches() {
     try {
-        const response = await fetch('/api/crops/active');  // This is correct
+        const response = await fetch('/api/crops/active');
         if (response.ok) {
             const batches = await response.json();
             displayActiveBatches(batches);
@@ -264,36 +364,38 @@ function displayActiveBatches(batches) {
     if (!batches || batches.length === 0) {
         batchesList.innerHTML = `
             <div class="text-center py-4">
-                <p class="text-muted">No active crop batches found.</p>
-                <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">Add Your First Batch</a>
+                <p class="text-muted">কোন সক্রিয় ফসলের ব্যাচ পাওয়া যায়নি।</p>
+                <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">আপনার প্রথম ব্যাচ যোগ করুন</a>
             </div>
         `;
         return;
     }
     
     batchesList.innerHTML = batches.map(batch => `
-        <div class="batch-item border-bottom pb-3 mb-3">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h6 class="mb-1 text-capitalize">${batch.crop_type || 'Crop'}</h6>
-                    <small class="text-muted">
-                        📍 ${batch.storage_location || 'Unknown'} • 
-                        🗓️ ${new Date(batch.harvest_date).toLocaleDateString()}
-                    </small>
-                </div>
-                <div class="col-md-4">
-                    <div class="progress mb-2" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: ${100 - (batch.loss_percentage || 0)}%"></div>
+        <a href="/crop/${batch.id}" style="text-decoration: none; color: inherit;">
+            <div class="batch-item border-bottom pb-3 mb-3" style="cursor: pointer; transition: all 0.3s ease; border-left: 4px solid #059669; padding-left: 1rem; margin-left: -1rem;">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="mb-1 text-capitalize" style="font-weight: 700; color: #047857;">${batch.crop_type || 'ফসল'}</h6>
+                        <small class="text-muted">
+                            📍 ${batch.storage_location || 'অজানা'} • 
+                            🗓️ ${new Date(batch.harvest_date).toLocaleDateString('bn-BD')}
+                        </small>
                     </div>
-                    <small>${batch.estimated_weight || 0} kg • ${batch.loss_percentage || 0}% loss</small>
-                </div>
-                <div class="col-md-2 text-end">
-                    <span class="badge bg-${getRiskLevelColor(batch.current_risk_level)}">
-                        ${(batch.current_risk_level || 'low').toUpperCase()} risk
-                    </span>
+                    <div class="col-md-4">
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: ${100 - (batch.loss_percentage || 0)}%"></div>
+                        </div>
+                        <small>${batch.estimated_weight || 0} কেজি • ${batch.loss_percentage || 0}% ক্ষতি</small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <span class="badge bg-${getRiskLevelColor(batch.current_risk_level)}" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                            ${getRiskLevelBangla(batch.current_risk_level)}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </a>
     `).join('');
 }
 
@@ -307,44 +409,69 @@ function getRiskLevelColor(riskLevel) {
     }
 }
 
+// Get Bangla text for risk level
+function getRiskLevelBangla(riskLevel) {
+    switch (riskLevel) {
+        case 'high': return '🔴 উচ্চ ঝুঁকি';
+        case 'medium': return '🟡 মধ্যম ঝুঁকি';
+        case 'low': 
+        default: return '🟢 কম ঝুঁকি';
+    }
+}
+
 // Load weather data
-function loadWeatherData() {
+// Load weather data from API
+async function loadWeatherData() {
     const weatherAlert = document.getElementById('weatherAlert');
     const weatherForecast = document.getElementById('weatherForecast');
     
-    // Mock weather data - replace with actual API call
-    weatherAlert.innerHTML = `
-        <strong>Good farming conditions!</strong> 
-        Temperature is optimal for crop storage. Monitor humidity levels regularly.
-    `;
-    
-    weatherForecast.innerHTML = `
-        <div class="col">
-            <small>Today</small>
-            <div>☀️ 32°C</div>
-            <small>Humidity: 65%</small>
-        </div>
-        <div class="col">
-            <small>Tomorrow</small>
-            <div>⛅ 31°C</div>
-            <small>Humidity: 70%</small>
-        </div>
-        <div class="col">
-            <small>Day 3</small>
-            <div>🌧️ 29°C</div>
-            <small>Humidity: 85%</small>
-        </div>
-    `;
-    
-    // Update alert container style
-    document.getElementById('weatherAlertContainer').className = 'alert alert-info';
+    try {
+        // Get user's default location (Dhaka for now, can be enhanced with user preferences)
+        const location = 'dhaka';
+        
+        const response = await fetch(`/api/weather/${location}`);
+        if (!response.ok) throw new Error('Failed to fetch weather');
+        
+        const weather = await response.json();
+        
+        // Display alert
+        const currentTemp = weather.current_temp;
+        let alertMsg = '✅ কৃষি বান্ধব আবহাওয়া চলছে। স্বাভাবিক যত্ন চালিয়ে যান।';
+        
+        if (weather.current_humidity > 85) {
+            alertMsg = '⚠️ আর্দ্রতা বেশি - ছত্রাক রোগের ঝুঁকি। বায়ুচলাচল নিশ্চিত করুন।';
+        } else if (currentTemp > 35) {
+            alertMsg = '🌡️ তাপমাত্রা অনেক বেশি - ফসল ঢেকে রাখুন।';
+        } else if (weather.forecasts[0]?.rain_chance > 80) {
+            alertMsg = '🌧️ বৃষ্টি হওয়ার সম্ভাবনা বেশি - ফসল সুরক্ষিত রাখুন।';
+        }
+        
+        weatherAlert.innerHTML = `<strong>${alertMsg}</strong>`;
+        
+        // Display forecast
+        if (weather.forecasts && weather.forecasts.length > 0) {
+            weatherForecast.innerHTML = weather.forecasts.slice(0, 5).map((day, idx) => {
+                const rainIcon = day.rain_chance > 50 ? '🌧️' : day.rain_chance > 20 ? '⛅' : '☀️';
+                return `
+                    <div class="col">
+                        <small style="font-weight: 600;">${idx === 0 ? 'আজ' : idx === 1 ? 'আগামীকাল' : idx + ' দিন'}</small>
+                        <div style="font-size: 1.2rem; margin: 0.5rem 0;">${rainIcon} ${day.temp}°C</div>
+                        <small style="color: #6b7280;">নমি: ${day.humidity}%</small><br>
+                        <small style="color: #059669; font-weight: 500;">বৃষ্টি: ${day.rain_chance.toFixed(0)}%</small>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Error loading weather:', error);
+        weatherAlert.innerHTML = `<strong>আবহাওয়া তথ্য লোড করা যাচ্ছে না। স্বাভাবিক যত্ন চালিয়ে যান।</strong>`;
+    }
 }
 
 // Load badges
 function loadBadges() {
     const badgesContainer = document.getElementById('badgesContainer');
     
-    // Mock badges - replace with actual API call
     badgesContainer.innerHTML = `
         <div class="col-4 mb-3">
             <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px;">
@@ -367,99 +494,21 @@ function loadBadges() {
     `;
 }
 
-// Initialize dashboard when page loads
-document.addEventListener('DOMContentLoaded', loadDashboardData);
-
 // Auto-refresh every 30 seconds
 setInterval(loadDashboardData, 30000);
-</script>
 
-<script>
-// Dashboard translations (en / bn) - merged into global translations
-const dashboardTranslations = {
-    en: {
-        dashboardTitle: 'Dashboard',
-        activeBatches: 'Active Batches',
-        totalWeightLabel: 'Total Weight',
-        savedFoodLabel: 'Saved Food',
-        successRateLabel: 'Success Rate'
-    },
-    bn: {
-        dashboardTitle: 'ড্যাশবোর্ড',
-        activeBatches: 'সক্রিয় ব্যাচ',
-        totalWeightLabel: 'মোট ওজন',
-        savedFoodLabel: 'সংরক্ষিত খাবার',
-        successRateLabel: 'সাফল্যের হার',
-        exportCsv: 'CSV এক্সপোর্ট'
-    }
-};
-
-Object.assign(translations.en, dashboardTranslations.en);
-Object.assign(translations.bn, dashboardTranslations.bn);
-document.addEventListener('DOMContentLoaded', updateContent);
-
-// Create a floating Export CSV button and CSV export logic
-function createExportButton() {
-    // don't create twice
-    if (document.getElementById('exportCsvBtn')) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'exportCsvBtn';
-    btn.className = 'btn btn-outline-secondary shadow-sm';
-    btn.style.position = 'fixed';
-    btn.style.bottom = '24px';
-    btn.style.right = '24px';
-    btn.style.zIndex = 1050;
-    btn.style.borderRadius = '8px';
-    btn.textContent = translations[currentLang]?.exportCsv || 'Export CSV';
-    btn.onclick = exportBatchesCSV;
-    document.body.appendChild(btn);
-
-    // update label when language changes
-    window.addEventListener('languageChanged', () => {
-        btn.textContent = translations[currentLang]?.exportCsv || 'Export CSV';
-    });
-}
-
-async function exportBatchesCSV() {
-    try {
-        const resp = await fetch('/api/crops/all', { credentials: 'same-origin' });
-        if (!resp.ok) {
-            alert('Failed to fetch batches for export');
-            return;
-        }
-        const batches = await resp.json();
-        if (!batches || batches.length === 0) {
-            alert('No batches to export');
-            return;
-        }
-
-        const headers = ['id','crop_type','status','estimated_weight','loss_percentage','harvest_date','storage_location','created_at','current_risk_level','notes'];
-        const rows = batches.map(b => headers.map(h => {
-            let v = (b[h] === undefined || b[h] === null) ? '' : String(b[h]);
-            v = v.replace(/"/g, '""');
-            return `"${v}"`;
-        }).join(','));
-
-        const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const date = new Date().toISOString().slice(0,10);
-        a.href = url;
-        a.download = `batches-${date}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-    } catch (e) {
-        console.error('Error exporting CSV', e);
-        alert('Error exporting CSV: ' + (e.message || e));
-    }
-}
-
+// Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function(){
-    createExportButton();
+    // Load all dashboard data
+    loadDashboardData();
+    
+    // Update content with current language
+    updateContent();
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', function() {
+        updateContent();
+    });
 });
 </script>
 
