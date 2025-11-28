@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-success text-white p-4 rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-1">🌾 Welcome, {{ session.user_name }}!</h2>
+                        <p class="mb-0">Your farming dashboard - Monitor crops and reduce food loss</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <small>Language: {{ session.language|upper }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-primary" id="activeBatches">0</h5>
+                            <p class="card-text">Active Batches</p>
+                        </div>
+                        <div class="align-self-center">
+                            <span class="fs-2">🌱</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-warning" id="totalWeight">0 kg</h5>
+                            <p class="card-text">Total Storage</p>
+                        </div>
+                        <div class="align-self-center">
+                            <span class="fs-2">⚖️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-success" id="savedFood">0 kg</h5>
+                            <p class="card-text">Food Saved</p>
+                        </div>
+                        <div class="align-self-center">
+                            <span class="fs-2">💾</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title text-info" id="successRate">0%</h5>
+                            <p class="card-text">Success Rate</p>
+                        </div>
+                        <div class="align-self-center">
+                            <span class="fs-2">📊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Actions & Quick Access -->
+        <div class="col-lg-4 mb-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🚀 Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success btn-lg">
+                            ➕ Add New Crop Batch
+                        </a>
+                        <a href="#" class="btn btn-outline-primary" onclick="loadWeatherData()">
+                            ️🌤️ Check Weather
+                        </a>
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-info">
+                            👤 View Profile
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                            🚪 Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievement Badges -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">🏆 Your Badges</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center" id="badgesContainer">
+                        <!-- Badges will be loaded here -->
+                        <div class="col-12">
+                            <p class="text-muted">No badges yet. Add your first crop batch to earn badges!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Active Batches & Weather -->
+        <div class="col-lg-8">
+            <!-- Active Crop Batches -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🌱 Active Crop Batches</h5>
+                    <span class="badge bg-light text-dark" id="activeCount">0 active</span>
+                </div>
+                <div class="card-body">
+                    <div id="activeBatchesList">
+                        <!-- Batches will be loaded here -->
+                        <div class="text-center py-4">
+                            <p class="text-muted">No active crop batches found.</p>
+                            <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">Add Your First Batch</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Alert -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">️🌤️ Weather Advisory</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" id="weatherAlertContainer">
+                        <strong>⚠️ Loading weather information...</strong>
+                        <p id="weatherAlert">Please wait while we fetch the latest weather data.</p>
+                    </div>
+                    <div class="row text-center" id="weatherForecast">
+                        <!-- Weather data will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">📋 Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recentActivity">
+                        <div class="activity-item border-bottom pb-2 mb-2">
+                            <small class="text-muted">Just now</small>
+                            <p class="mb-1">You logged into your dashboard</p>
+                        </div>
+                        <div class="activity-item">
+                            <small class="text-muted">Welcome!</small>
+                            <p class="mb-1">Start by adding your first crop batch</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        // Load crop stats
+        await loadCropStats();
+        
+        // Load active batches
+        await loadActiveBatches();
+        
+        // Load weather data
+        loadWeatherData();
+        
+        // Load badges
+        loadBadges();
+
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+// Load crop statistics
+async function loadCropStats() {
+    try {
+        const response = await fetch('/api/dashboard/stats');  // Changed from '/api/crops/stats'
+        if (response.ok) {
+            const stats = await response.json();
+            updateStatsDisplay(stats);
+        } else {
+            // Use default stats if API fails
+            updateStatsDisplay({
+                active_batches: 0,
+                total_weight: 0,
+                saved_food: 0,
+                success_rate: 0
+            });
+        }
+    } catch (error) {
+        console.error('Error loading crop stats:', error);
+        updateStatsDisplay({
+            active_batches: 0,
+            total_weight: 0,
+            saved_food: 0,
+            success_rate: 0
+        });
+    }
+}
+
+// Update stats display
+function updateStatsDisplay(stats) {
+    document.getElementById('activeBatches').textContent = stats.active_batches || 0;
+    document.getElementById('totalWeight').textContent = (stats.total_weight || 0) + ' kg';
+    document.getElementById('savedFood').textContent = (stats.saved_food || 0) + ' kg';
+    document.getElementById('successRate').textContent = (stats.success_rate || 0) + '%';
+    document.getElementById('activeCount').textContent = (stats.active_batches || 0) + ' active';
+}
+
+// Load active batches
+async function loadActiveBatches() {
+    try {
+        const response = await fetch('/api/crops/active');  // This is correct
+        if (response.ok) {
+            const batches = await response.json();
+            displayActiveBatches(batches);
+        }
+    } catch (error) {
+        console.error('Error loading active batches:', error);
+    }
+}
+
+// Display active batches
+function displayActiveBatches(batches) {
+    const batchesList = document.getElementById('activeBatchesList');
+    
+    if (!batches || batches.length === 0) {
+        batchesList.innerHTML = `
+            <div class="text-center py-4">
+                <p class="text-muted">No active crop batches found.</p>
+                <a href="{{ url_for('crops.add_crop') }}" class="btn btn-success">Add Your First Batch</a>
+            </div>
+        `;
+        return;
+    }
+    
+    batchesList.innerHTML = batches.map(batch => `
+        <div class="batch-item border-bottom pb-3 mb-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6 class="mb-1 text-capitalize">${batch.crop_type || 'Crop'}</h6>
+                    <small class="text-muted">
+                        📍 ${batch.storage_location || 'Unknown'} • 
+                        🗓️ ${new Date(batch.harvest_date).toLocaleDateString()}
+                    </small>
+                </div>
+                <div class="col-md-4">
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: ${100 - (batch.loss_percentage || 0)}%"></div>
+                    </div>
+                    <small>${batch.estimated_weight || 0} kg • ${batch.loss_percentage || 0}% loss</small>
+                </div>
+                <div class="col-md-2 text-end">
+                    <span class="badge bg-${getRiskLevelColor(batch.current_risk_level)}">
+                        ${(batch.current_risk_level || 'low').toUpperCase()} risk
+                    </span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Get color for risk level
+function getRiskLevelColor(riskLevel) {
+    switch (riskLevel) {
+        case 'high': return 'danger';
+        case 'medium': return 'warning';
+        case 'low': 
+        default: return 'success';
+    }
+}
+
+// Load weather data
+function loadWeatherData() {
+    const weatherAlert = document.getElementById('weatherAlert');
+    const weatherForecast = document.getElementById('weatherForecast');
+    
+    // Mock weather data - replace with actual API call
+    weatherAlert.innerHTML = `
+        <strong>Good farming conditions!</strong> 
+        Temperature is optimal for crop storage. Monitor humidity levels regularly.
+    `;
+    
+    weatherForecast.innerHTML = `
+        <div class="col">
+            <small>Today</small>
+            <div>☀️ 32°C</div>
+            <small>Humidity: 65%</small>
+        </div>
+        <div class="col">
+            <small>Tomorrow</small>
+            <div>⛅ 31°C</div>
+            <small>Humidity: 70%</small>
+        </div>
+        <div class="col">
+            <small>Day 3</small>
+            <div>🌧️ 29°C</div>
+            <small>Humidity: 85%</small>
+        </div>
+    `;
+    
+    // Update alert container style
+    document.getElementById('weatherAlertContainer').className = 'alert alert-info';
+}
+
+// Load badges
+function loadBadges() {
+    const badgesContainer = document.getElementById('badgesContainer');
+    
+    // Mock badges - replace with actual API call
+    badgesContainer.innerHTML = `
+        <div class="col-4 mb-3">
+            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px;">
+                👋
+            </div>
+            <small>Welcome</small>
+        </div>
+        <div class="col-4 mb-3">
+            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px; opacity: 0.5;">
+                🌱
+            </div>
+            <small>First Crop</small>
+        </div>
+        <div class="col-4 mb-3">
+            <div class="bg-light rounded-circle p-3 mx-auto" style="width: 70px; height: 70px; opacity: 0.5;">
+                💪
+            </div>
+            <small>Risk Master</small>
+        </div>
+    `;
+}
+
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+// Auto-refresh every 30 seconds
+setInterval(loadDashboardData, 30000);
+</script>
+
+<style>
+.batch-item:hover {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    margin: -10px;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.activity-item {
+    padding: 8px 0;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">🌾 Add New Crop Batch</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('crops.add_crop') }}">
+                        <!-- Crop Type -->
+                        <div class="mb-3">
+                            <label for="crop_type" class="form-label">Crop Type *</label>
+                            <select class="form-select" id="crop_type" name="crop_type" required>
+                                <option value="">Select Crop Type</option>
+                                <option value="paddy">Paddy/Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="corn">Corn</option>
+                                <option value="potato">Potato</option>
+                                <option value="vegetables">Vegetables</option>
+                            </select>
+                        </div>
+
+                        <!-- Estimated Weight -->
+                        <div class="mb-3">
+                            <label for="estimated_weight" class="form-label">Estimated Weight (kg) *</label>
+                            <input type="number" class="form-control" id="estimated_weight" 
+                                   name="estimated_weight" min="1" max="10000" 
+                                   placeholder="Enter weight in kilograms" required>
+                        </div>
+
+                        <!-- Harvest Date -->
+                        <div class="mb-3">
+                            <label for="harvest_date" class="form-label">Harvest Date *</label>
+                            <input type="date" class="form-control" id="harvest_date" 
+                                   name="harvest_date" required>
+                        </div>
+
+                        <!-- Storage Location -->
+                        <div class="mb-3">
+                            <label for="storage_location" class="form-label">Storage Location *</label>
+                            <select class="form-select" id="storage_location" name="storage_location" required>
+                                <option value="">Select Division/District</option>
+                                <option value="dhaka">Dhaka</option>
+                                <option value="chittagong">Chittagong</option>
+                                <option value="rajshahi">Rajshahi</option>
+                                <option value="khulna">Khulna</option>
+                                <option value="barisal">Barisal</option>
+                                <option value="sylhet">Sylhet</option>
+                                <option value="rangpur">Rangpur</option>
+                                <option value="mymensingh">Mymensingh</option>
+                            </select>
+                        </div>
+
+                        <!-- Storage Type -->
+                        <div class="mb-3">
+                            <label for="storage_type" class="form-label">Storage Type *</label>
+                            <select class="form-select" id="storage_type" name="storage_type" required>
+                                <option value="">Select Storage Type</option>
+                                <option value="jute_bag">Jute Bag Stack</option>
+                                <option value="silo">Silo</option>
+                                <option value="open_area">Open Area</option>
+                                <option value="covered_floor">Covered Floor</option>
+                                <option value="plastic_container">Plastic Container</option>
+                            </select>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" 
+                                      rows="3" placeholder="Any additional information about the crop batch..."></textarea>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Add Crop Batch</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6>Your Current Stats:</h6>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h5 class="text-success" id="activeBatches">0</h5>
+                            <small>Active Batches</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-warning" id="totalWeight">0 kg</h5>
+                            <small>Total Weight</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-info" id="savedFood">0 kg</h5>
+                            <small>Food Saved</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set max date to today for harvest date
+document.getElementById('harvest_date').max = new Date().toISOString().split('T')[0];
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const weight = document.getElementById('estimated_weight').value;
+    if (weight < 1 || weight > 10000) {
+        e.preventDefault();
+        alert('Please enter a valid weight between 1 and 10,000 kg');
+        return false;
+    }
+});
+
+// Load farmer stats (mock data for now)
+function loadFarmerStats() {
+    // In real app, fetch from API
+    document.getElementById('activeBatches').textContent = '3';
+    document.getElementById('totalWeight').textContent = '1,250 kg';
+    document.getElementById('savedFood').textContent = '950 kg';
+}
+
+// Load stats when page loads
+document.addEventListener('DOMContentLoaded', loadFarmerStats);
+</script>
+{% endblock %}
