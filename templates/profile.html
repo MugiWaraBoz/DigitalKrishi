@@ -25,6 +25,40 @@
         </div>
     </div>
 
+    <!-- My Status (Quick Stats) moved to top -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1rem;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0" style="color: white; font-weight: 700;">📊 My Status</h6>
+                        <button id="profileLangToggle" type="button" class="btn btn-sm btn-outline-light" style="font-weight:700;">বাংলা</button>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row text-center g-3">
+                        <div class="col-6 col-md-3">
+                            <h4 class="text-success" id="totalBatches" style="font-weight: 800; color: #047857;">0</h4>
+                            <small id="labelTotalBatches" style="color: #6b7280;">Total Batches</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h4 class="text-info" id="activeBatchesCount" style="font-weight: 800; color: #0284c7;">0</h4>
+                            <small id="labelActive" style="color: #6b7280;">Active</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h4 style="font-weight: 800; color: #7c3aed;" id="completedBatches">0</h4>
+                            <small id="labelCompleted" style="color: #6b7280;">Completed</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h4 style="font-weight: 800; color: #059669;" id="totalWeight">0kg</h4>
+                            <small id="labelTotalWeight" style="color: #6b7280;">Total Weight</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
         <!-- Left Column - Profile Information -->
         <div class="col-lg-4">
@@ -36,26 +70,43 @@
                 <div class="card-body p-4">
                     <form method="POST" action="{{ url_for('auth.update_profile') }}">
                         <div class="mb-3">
+                            <label class="form-label" style="color: #1e293b; font-weight: 600;" id="locationLabel">Farm Location (Latitude / Longitude)</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" name="latitude" id="latitudeInput"
+                                       value="{{ farmer.latitude or farmer.lat or '' }}" placeholder="Latitude"
+                                       style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
+                                <input type="text" class="form-control" name="longitude" id="longitudeInput"
+                                       value="{{ farmer.longitude or farmer.lon or farmer.lng or '' }}" placeholder="Longitude"
+                                       style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
+                            </div>
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="useLocationBtn">Use Current Location</button>
+                                <small class="text-muted ms-2">You can update your farm coordinates here to center maps and risk calculations.</small>
+                            </div>
+                            <div id="locationPreview" class="mt-2" style="min-height:140px;"></div>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label" style="color: #1e293b; font-weight: 600;" id="fullNameLabel">Full Name</label>
-                            <input type="text" class="form-control" name="name" 
+                            <input type="text" class="form-control" name="name"
                                    value="{{ farmer.name }}" required
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; transition: all 0.3s ease;">
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label" style="color: #1e293b; font-weight: 600;" id="emailLabel">Email</label>
                             <input type="email" class="form-control" value="{{ farmer.email }}" readonly
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem; background: #f3f4f6;">
                             <small class="text-muted" id="emailCannotChange">Email cannot be changed</small>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label" style="color: #1e293b; font-weight: 600;" id="phoneLabel">Phone</label>
-                            <input type="text" class="form-control" name="phone" 
+                            <input type="text" class="form-control" name="phone"
                                    value="{{ farmer.phone or '' }}" placeholder="Enter phone number"
                                    style="border: 2px solid #e5e7eb; border-radius: 10px; padding: 0.75rem;">
                         </div>
-                        
+
                         <div class="mb-4">
                             <label class="form-label" style="color: #1e293b; font-weight: 600;" id="languageLabel">Preferred Language</label>
                             <select class="form-select" name="preferred_language"
@@ -64,10 +115,10 @@
                                 <option value="bn" {% if farmer.preferred_language == 'bn' %}selected{% endif %}>Bangla</option>
                             </select>
                         </div>
-                        
-                        <button id="updateProfileBtn" type="submit" class="btn w-100" 
-                                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" 
-                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" 
+
+                        <button id="updateProfileBtn" type="submit" class="btn w-100"
+                                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             💾 <span id="updateProfileBtnText">Update Profile</span>
                         </button>
@@ -75,32 +126,7 @@
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="card border-0" style="box-shadow: 0 8px 25px rgba(5,150,105,0.1);">
-                <div class="card-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; padding: 1.5rem;">
-                    <h5 class="mb-0" style="color: white; font-weight: 700;" id="farmingStatsTitle">📊 Your Farming Stats</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row text-center g-3">
-                        <div class="col-6">
-                            <h3 class="text-success" id="totalBatches" style="font-weight: 800; color: #047857;">0</h3>
-                            <small id="labelTotalBatches" style="color: #6b7280;">Total Batches</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 class="text-info" id="activeBatchesCount" style="font-weight: 800; color: #0284c7;">0</h3>
-                            <small id="labelActive" style="color: #6b7280;">Active</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 style="font-weight: 800; color: #7c3aed;" id="completedBatches">0</h3>
-                            <small id="labelCompleted" style="color: #6b7280;">Completed</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 style="font-weight: 800; color: #059669;" id="totalWeight">0kg</h3>
-                            <small id="labelTotalWeight" style="color: #6b7280;">Total Weight</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Left column continues (quick stats moved to top) -->
         </div>
 
         <!-- Right Column - Crop Batch Management -->
@@ -426,17 +452,38 @@ async function loadProfileStats() {
     }
 }
 
-// Ensure we load data when the page finishes loading
-document.addEventListener('DOMContentLoaded', function() {
-    loadProfileData();
-    // Update content with current language
-    updateContent();
-    
-    // Listen for language changes
-    window.addEventListener('languageChanged', function() {
+    // Ensure we load data when the page finishes loading
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProfileData();
+        // Update content with current language
         updateContent();
+
+        // If coordinates already present in inputs, show preview
+        const latEl = document.getElementById('latitudeInput');
+        const lngEl = document.getElementById('longitudeInput');
+        if (latEl && lngEl && latEl.value && lngEl.value) {
+            showLocationPreview(latEl.value, lngEl.value);
+        }
+
+        // Listen for language changes
+        window.addEventListener('languageChanged', function() {
+            updateContent();
+        });
+
+        // Profile page language toggle button (keeps text synced with global toggle)
+        const profileLangBtn = document.getElementById('profileLangToggle');
+        if (profileLangBtn) {
+            function refreshProfileLangBtn() {
+                try {
+                    const label = (translations[currentLang] && translations[currentLang].langToggle) ? translations[currentLang].langToggle : (currentLang === 'en' ? 'Bangla' : 'English');
+                    profileLangBtn.textContent = label;
+                } catch (e) { /* ignore */ }
+            }
+            refreshProfileLangBtn();
+            profileLangBtn.addEventListener('click', function() { toggleLanguage(); });
+            window.addEventListener('languageChanged', refreshProfileLangBtn);
+        }
     });
-});
 
 // Add English/Bangla translations for profile page
 const profileTranslations = {
@@ -489,6 +536,125 @@ const profileTranslations = {
 // Merge with global translations
 Object.assign(translations.en, profileTranslations.en);
 Object.assign(translations.bn, profileTranslations.bn);
+
+    // Helper: ensure Leaflet is loaded (CSS + JS) then call cb
+    function ensureLeaflet(cb) {
+        if (window.L) return cb();
+        // load CSS
+        if (!document.querySelector('link[data-leaflet]')) {
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            css.setAttribute('data-leaflet', '1');
+            document.head.appendChild(css);
+        }
+        // load JS
+        if (!document.querySelector('script[data-leaflet]')) {
+            const s = document.createElement('script');
+            s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            s.setAttribute('data-leaflet', '1');
+            s.onload = cb;
+            document.head.appendChild(s);
+        } else {
+            // already loading
+            const existing = document.querySelector('script[data-leaflet]');
+            existing.addEventListener('load', function() { cb(); });
+        }
+    }
+
+    // Update inputs + preview label and osm link
+    function updateInputsAndPreview(lat, lng) {
+        const latEl = document.getElementById('latitudeInput');
+        const lngEl = document.getElementById('longitudeInput');
+        if (latEl) latEl.value = parseFloat(lat).toFixed(6);
+        if (lngEl) lngEl.value = parseFloat(lng).toFixed(6);
+        const previewText = document.querySelector('#locationPreview .preview-text');
+        if (previewText) previewText.innerHTML = `Selected location: <strong>${parseFloat(lat).toFixed(6)}</strong>, <strong>${parseFloat(lng).toFixed(6)}</strong>`;
+        const osmLink = document.querySelector('#locationPreview .osm-link');
+        if (osmLink) osmLink.href = `https://www.openstreetmap.org/?mlat=${parseFloat(lat)}&mlon=${parseFloat(lng)}#map=16/${parseFloat(lat)}/${parseFloat(lng)}`;
+    }
+
+    // Helper: display an interactive Leaflet map and marker for given lat/lng
+    function showLocationPreview(lat, lng) {
+        const preview = document.getElementById('locationPreview');
+        if (!preview) return;
+        const latNum = parseFloat(lat);
+        const lngNum = parseFloat(lng);
+        if (Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+            preview.innerHTML = '<div class="text-danger">Invalid coordinates</div>';
+            return;
+        }
+
+        // Insert map container and header
+        preview.innerHTML = `
+            <div class="preview-text" style="font-size:0.9rem; margin-bottom:6px;">Selected location: <strong>${latNum.toFixed(6)}</strong>, <strong>${lngNum.toFixed(6)}</strong></div>
+            <div id="locationMap" style="width:100%; height:260px; border:1px solid #ddd; border-radius:6px;"></div>
+            <div class="mt-2"><a class="osm-link" href="https://www.openstreetmap.org/?mlat=${latNum}&mlon=${lngNum}#map=16/${latNum}/${lngNum}" target="_blank" rel="noopener">Open in OpenStreetMap</a></div>
+        `;
+
+        ensureLeaflet(function() {
+            // initialize map if not present
+            try {
+                if (!window.profileMap) {
+                    window.profileMap = L.map('locationMap').setView([latNum, lngNum], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(window.profileMap);
+                    window.profileMarker = L.marker([latNum, lngNum], { draggable: true }).addTo(window.profileMap);
+
+                    window.profileMarker.on('dragend', function(e) {
+                        const p = e.target.getLatLng();
+                        updateInputsAndPreview(p.lat, p.lng);
+                    });
+
+                    window.profileMap.on('click', function(e) {
+                        const p = e.latlng;
+                        if (window.profileMarker) window.profileMarker.setLatLng(p);
+                        else window.profileMarker = L.marker(p, { draggable: true }).addTo(window.profileMap);
+                        updateInputsAndPreview(p.lat, p.lng);
+                    });
+                } else {
+                    window.profileMap.invalidateSize();
+                    window.profileMap.setView([latNum, lngNum], 15);
+                    if (window.profileMarker) window.profileMarker.setLatLng([latNum, lngNum]);
+                    else window.profileMarker = L.marker([latNum, lngNum], { draggable: true }).addTo(window.profileMap);
+                }
+            } catch (err) {
+                console.error('Leaflet init error', err);
+            }
+        });
+    }
+
+    // Use current location button handler (attach once)
+    (function attachUseLocation() {
+        const useBtn = document.getElementById('useLocationBtn');
+        if (!useBtn) return;
+        useBtn.addEventListener('click', function() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+            useBtn.disabled = true;
+            const prevText = useBtn.textContent;
+            useBtn.textContent = 'Detecting...';
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const latEl = document.getElementById('latitudeInput');
+                const lngEl = document.getElementById('longitudeInput');
+                if (latEl) latEl.value = parseFloat(lat).toFixed(6);
+                if (lngEl) lngEl.value = parseFloat(lng).toFixed(6);
+                showLocationPreview(lat, lng);
+                useBtn.textContent = prevText;
+                useBtn.disabled = false;
+            }, function(err) {
+                alert('Unable to get location: ' + (err.message || err.code));
+                useBtn.textContent = prevText;
+                useBtn.disabled = false;
+            }, { timeout: 8000 });
+        });
+    })();
 </script>
 
 <style>

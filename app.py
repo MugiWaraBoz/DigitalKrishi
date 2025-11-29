@@ -1,10 +1,12 @@
-from flask import Flask, render_template, session, redirect, url_for, flash
+from flask import Flask, render_template, session, redirect, url_for, flash, request, jsonify
 from dotenv import load_dotenv
 from modules.auth import auth_bp
 from modules.crops import crops_bp
 from modules.api import api_bp
 from modules.gemini_ai import gemini_bp
-
+import os
+import sys
+import re
 # Load environment variables from .env (Supabase, Gemini, etc.)
 load_dotenv()
 
@@ -16,7 +18,6 @@ if ROOT not in sys.path:
 # Advisory generator (server-side) imported from project root
 try:
     from advisory_generator import AgriculturalAdvisoryGenerator
-    from flask import jsonify
 except ModuleNotFoundError:
     # Fallback: load module directly from file path
     import importlib.util

@@ -24,8 +24,12 @@
         }
 
         body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Animations */
@@ -169,7 +173,7 @@
         main {
             padding-top: 5.5rem; /* reserve space for fixed navbar */
             background: linear-gradient(135deg, #f8faf9 0%, #f0f7f4 100%);
-            min-height: calc(100vh - 5.5rem);
+            flex: 1 0 auto; /* allow main to grow and keep footer visible on small screens */
         }
 
         /* Global card styling */

@@ -27,6 +27,8 @@ def register():
         name = data.get('name')
         phone = data.get('phone')
         preferred_language = data.get('preferred_language', 'en')
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
 
         # Validation
         if not all([email, password, name]):
@@ -59,6 +61,18 @@ def register():
                 'phone': phone,
                 'preferred_language': preferred_language
             }
+
+            # Include optional coordinates if provided
+            if latitude:
+                try:
+                    farmer_data['latitude'] = float(latitude)
+                except Exception:
+                    farmer_data['latitude'] = latitude
+            if longitude:
+                try:
+                    farmer_data['longitude'] = float(longitude)
+                except Exception:
+                    farmer_data['longitude'] = longitude
 
             print(f"Creating farmer profile: {farmer_data}")  # Debug
             
@@ -124,12 +138,14 @@ def login():
 
             if farmer_response.data:
                 farmer = farmer_response.data[0]
-                
                 # Set session data
                 session['user_id'] = auth_response.user.id
                 session['user_email'] = farmer['email']
                 session['user_name'] = farmer['name']
                 session['language'] = farmer.get('preferred_language', 'en')
+                # set optional coordinates in session for convenience
+                session['latitude'] = farmer.get('latitude')
+                session['longitude'] = farmer.get('longitude')
                 session['access_token'] = auth_response.session.access_token
                 
                 flash(f'Welcome back, {farmer["name"]}!', 'success')
@@ -149,6 +165,9 @@ def login():
                     session['user_email'] = email
                     session['user_name'] = farmer_data['name']
                     session['language'] = 'en'
+                    # set session coords if present
+                    session['latitude'] = farmer_data.get('latitude')
+                    session['longitude'] = farmer_data.get('longitude')
                     
                     flash(f'Welcome, {farmer_data["name"]}!', 'success')
                     return redirect(url_for('dashboard'))
@@ -218,6 +237,20 @@ def update_profile():
             'preferred_language': data.get('preferred_language', 'en')
         }
 
+        # Accept latitude/longitude updates if provided
+        lat = data.get('latitude')
+        lng = data.get('longitude')
+        if lat is not None and lat != '':
+            try:
+                update_data['latitude'] = float(lat)
+            except Exception:
+                update_data['latitude'] = lat
+        if lng is not None and lng != '':
+            try:
+                update_data['longitude'] = float(lng)
+            except Exception:
+                update_data['longitude'] = lng
+
         # Remove None values
         update_data = {k: v for k, v in update_data.items() if v is not None}
 
@@ -228,6 +261,11 @@ def update_profile():
             # Update session
             session['user_name'] = update_data.get('name', session.get('user_name'))
             session['language'] = update_data.get('preferred_language', session.get('language', 'en'))
+            # update session coordinates if changed
+            if 'latitude' in update_data:
+                session['latitude'] = update_data.get('latitude')
+            if 'longitude' in update_data:
+                session['longitude'] = update_data.get('longitude')
             
             flash('Profile updated successfully', 'success')
         else:

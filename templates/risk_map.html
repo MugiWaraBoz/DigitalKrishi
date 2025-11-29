@@ -196,6 +196,17 @@
                     <h6 class="mb-0" id="legendTitle">Risk Legend</h6>
                 </div>
                 <div class="card-body">
+                    <!-- Active batch selector for pinning a batch location -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Active Batch</label>
+                        <div class="input-group">
+                            <select id="batchSelect" class="form-select">
+                                <option value="">-- Loading active batches --</option>
+                            </select>
+                            <button id="pinBatchBtn" class="btn btn-primary" type="button">Pin</button>
+                        </div>
+                        <small class="text-muted">Pin a batch to center the map and show nearby neighbor alerts.</small>
+                    </div>
                     <div class="legend-pill mb-3">
                         <span class="legend-dot" style="background:#2563eb;"></span>
                         <span id="legendFarmer">Farmer</span>
@@ -636,6 +647,88 @@ function fitMapToMarkers(points = []) {
 }
 
 document.addEventListener('DOMContentLoaded', initRiskMapPage);
+
+// Load active batches and wire up batch selector
+async function loadActiveBatchesForMap() {
+    try {
+        const res = await fetch('/api/crops/active');
+        if (!res.ok) return;
+        const batches = await res.json();
+        const sel = document.getElementById('batchSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Select a batch --</option>';
+        batches.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = `${b.crop_type || 'ফসল'} — ${b.storage_location || 'অজানা'}`;
+            // embed full batch JSON for quick lookup
+            opt.dataset.batch = JSON.stringify(b);
+            sel.appendChild(opt);
+        });
+
+        document.getElementById('pinBatchBtn').addEventListener('click', function () {
+            const sel = document.getElementById('batchSelect');
+            const chosen = sel.options[sel.selectedIndex];
+            if (!chosen || !chosen.dataset.batch) return alert('Please select a batch');
+            const batch = JSON.parse(chosen.dataset.batch);
+            pinBatchOnMap(batch);
+        });
+    } catch (e) {
+        console.warn('Failed to load active batches for map', e);
+    }
+}
+
+// Pin a batch on the map. If batch has latitude/longitude use them, otherwise
+// generate a plausible coordinate near the district center and show neighbors.
+function pinBatchOnMap(batch) {
+    if (!riskMapInstance) return;
+    let coords = null;
+    if (batch.latitude && batch.longitude) {
+        coords = [parseFloat(batch.latitude), parseFloat(batch.longitude)];
+    } else if (batch.storage_coords && Array.isArray(batch.storage_coords) && batch.storage_coords.length === 2) {
+        coords = batch.storage_coords;
+    }
+
+    const district = batch.storage_location || (window.__riskMapUserInfo && (window.__riskMapUserInfo.district || window.__riskMapUserInfo.division)) || 'Dhaka';
+    const meta = getDistrictMeta(district);
+    if (!coords) {
+        // pick a randomized nearby point within district spread
+        const base = meta.center || getDistrictMeta(DEFAULT_DISTRICT_KEY).center;
+        const spread = meta.spread || 0.35;
+        const offsetLat = (Math.random() - 0.5) * spread * 0.6;
+        const offsetLng = (Math.random() - 0.5) * spread * 0.6 * 1.15;
+        coords = clampToBangladesh([base[0] + offsetLat, base[1] + offsetLng]);
+    }
+
+    // remove existing batch marker if present
+    if (window.batchMarker) {
+        try { window.batchMarker.remove(); } catch (e) {}
+    }
+
+    const batchIcon = L.divIcon({
+        className: 'batch-pin',
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#06b6d4;border:3px solid #fff;box-shadow:0 8px 18px rgba(6,182,212,0.18);"></div>`,
+        iconSize: [26,26],
+        iconAnchor: [13,13]
+    });
+
+    window.batchMarker = L.marker(coords, { icon: batchIcon }).addTo(riskMapInstance).bindPopup(`<strong>${batch.crop_type || 'ফসল'}</strong><br>${batch.storage_location || ''}`);
+    try { window.batchMarker.openPopup(); } catch (e) {}
+
+    // center and zoom closer to the batch
+    try { riskMapInstance.setView(coords, Math.max(meta.zoom || 11, 12)); } catch (e) {}
+
+    // render neighbors around the pinned batch
+    renderNeighborRisks(coords, meta.spread || 0.25);
+}
+
+// Initialize batch selector after map and user location are ready
+(function(){
+    document.addEventListener('DOMContentLoaded', function(){
+        // Slight delay to ensure map loads and API is responsive
+        setTimeout(loadActiveBatchesForMap, 400);
+    });
+})();
 </script>
 {% endblock %}
 
