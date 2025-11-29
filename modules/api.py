@@ -4,7 +4,9 @@ import requests
 import os
 import base64
 from datetime import datetime
+
 from modules.database import get_supabase
+from modules.weather import fetch_weather_forecast
 from config.gemini_config import get_gemini_client, get_default_gemini_model
 
 api_bp = Blueprint('api', __name__)
@@ -487,6 +489,27 @@ def get_weather(location):
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e), 'type': type(e).__name__}), 500
+
+
+@api_bp.route('/api/weather/agri/<location>')
+def get_weather_agri(location):
+    """
+    Fetch 7-day agricultural advisory for all major crops.
+
+    Uses Open-Meteo via modules.weather.fetch_weather_forecast and returns
+    Dhaka-style date labels plus crop-wise risk/advice in Bangla.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        data = fetch_weather_forecast(location)
+        if data.get('error'):
+            return jsonify({'error': data['error']}), 500
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error in get_weather_agri: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @api_bp.route('/api/weather-advisory/<crop_id>')
