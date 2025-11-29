@@ -217,16 +217,30 @@ def detect_disease_with_gemini():
 
 def get_upazila_coords():
     """Map of Bangladeshi upazilas to coordinates and names"""
-    return {
+    # Core canonical entries
+    coords = {
         'dhaka': {'lat': 23.8103, 'lon': 90.4125, 'name': 'ঢাকা'},
-        'chittagong': {'lat': 22.3569, 'lon': 91.7832, 'name': 'চট্টগ্রাম'},
+        'chattogram': {'lat': 22.3569, 'lon': 91.7832, 'name': 'চট্টগ্রাম'},
         'rajshahi': {'lat': 24.3745, 'lon': 88.6042, 'name': 'রাজশাহী'},
         'khulna': {'lat': 22.8456, 'lon': 89.5644, 'name': 'খুলনা'},
-        'barisal': {'lat': 22.7010, 'lon': 90.3535, 'name': 'বরিশাল'},
+        'barishal': {'lat': 22.7010, 'lon': 90.3535, 'name': 'বরিশাল'},
         'sylhet': {'lat': 24.8949, 'lon': 91.8687, 'name': 'সিলেট'},
         'rangpur': {'lat': 25.7439, 'lon': 89.2752, 'name': 'রংপুর'},
         'mymensingh': {'lat': 24.7465, 'lon': 90.4082, 'name': 'ময়মনসিংহ'}
     }
+
+    # Add common aliases mapping to same canonical entries for compatibility
+    aliases = {
+        'chittagong': 'chattogram',
+        'ctg': 'chattogram',
+        'barisal': 'barishal',
+        'boroishal': 'barishal'
+    }
+
+    for alias, canon in aliases.items():
+        coords[alias] = coords[canon]
+
+    return coords
 
 def calculate_risk_level(forecasts):
     """
@@ -367,6 +381,22 @@ def get_user_info():
             except:
                 created_date = farmer['created_at']
         
+        # Try to extract latitude/longitude from common field names
+        def _get_coord(keys):
+            for k in keys:
+                if farmer.get(k) is not None:
+                    try:
+                        return float(farmer.get(k))
+                    except Exception:
+                        try:
+                            return float(str(farmer.get(k)))
+                        except Exception:
+                            return farmer.get(k)
+            return None
+
+        latitude = _get_coord(['latitude', 'lat', 'location_lat'])
+        longitude = _get_coord(['longitude', 'lon', 'lng', 'location_lng'])
+
         return jsonify({
             'id': farmer.get('id'),
             'name': farmer.get('name'),
@@ -374,7 +404,11 @@ def get_user_info():
             'phone': farmer.get('phone'),
             'created_at': farmer.get('created_at'),
             'created_at_bn': created_date,
-            'preferred_language': farmer.get('preferred_language', 'en')
+            'preferred_language': farmer.get('preferred_language', 'en'),
+            'latitude': latitude,
+            'longitude': longitude,
+            'district': farmer.get('district'),
+            'division': farmer.get('division')
         })
         
     except Exception as e:

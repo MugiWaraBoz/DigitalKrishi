@@ -38,6 +38,13 @@ def dashboard():
     
     return render_template('dashboard.html', user=user_data)
 
+@app.route('/risk-map')
+def risk_map():
+    if 'user_id' not in session:
+        flash("Please login first", 'warning')
+        return redirect(url_for('auth.login'))
+    return render_template('risk_map.html')
+
 @app.route('/about')
 def about():
     return render_template('about.html')
