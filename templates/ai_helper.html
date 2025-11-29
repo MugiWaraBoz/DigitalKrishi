@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Gemini AI Helper - DigitalKrishi{% endblock %}
+
+{% block content %}
+<div class="container-lg py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 20px; padding: 2rem 2rem; box-shadow: 0 10px 40px rgba(37,99,235,0.25);">
+                <h1 style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;" id="aiHelperTitle">
+                    🌿 Gemini Plant Disease Analyzer
+                </h1>
+                <p style="font-size: 1rem; color: rgba(255,255,255,0.9); max-width: 700px;" id="aiHelperSubtitle">
+                    Upload a plant or leaf photo and Gemini will explain possible diseases, symptoms and simple next steps in Bangla for farmers.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="aiCardTitle">Plant Disease Detection (Image)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="aiImage" class="form-label" id="aiImageLabel">Upload plant or leaf photo</label>
+                        <input type="file" id="aiImage" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-3" id="imagePreviewContainer" style="display: none;">
+                        <label class="form-label" id="aiPreviewLabel">Image Preview</label>
+                        <div style="border: 2px dashed #059669; border-radius: 8px; padding: 1rem; background: #f0fdf4; text-align: center;">
+                            <img id="imagePreview" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain;">
+                            <div class="mt-2">
+                                <small class="text-muted" id="imageFileName"></small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="aiNote" class="form-label" id="aiNoteLabel">Optional note (e.g., crop name, location)</label>
+                        <input type="text" id="aiNote" class="form-control" placeholder="">
+                    </div>
+                    <button id="aiImageSubmit" class="btn btn-success">
+                        <span id="aiSubmitText">🌿 Analyze Plant Disease</span>
+                    </button>
+                    <small class="text-muted d-block mt-2" id="aiHelperNote">
+                        Gemini will analyze the image and explain possible diseases in Bangla.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0" id="aiResultTitle">Disease Analysis Result</h5>
+                </div>
+                <div class="card-body">
+                    <div id="aiImageStatus" class="text-muted mb-2"></div>
+                    <div id="riskLevelBadge" class="mb-3" style="display: none;"></div>
+                    <div id="aiImageOutput" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Microphone Button -->
+<!-- Voice floating mic and status removed (use Voice Assistant in Quick Actions) -->
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Translation dictionary for AI Helper page
+const aiHelperTranslations = {
+    'en': {
+        'aiHelperTitle': '🌿 Gemini Plant Disease Analyzer',
+        'aiHelperSubtitle': 'Upload a plant or leaf photo and Gemini will explain possible diseases, symptoms and simple next steps in Bangla for farmers.',
+        'aiCardTitle': 'Plant Disease Detection (Image)',
+        'aiImageLabel': 'Upload plant or leaf photo',
+        'aiPreviewLabel': 'Image Preview',
+        'aiNoteLabel': 'Optional note (e.g., crop name, location)',
+        'aiNotePlaceholder': 'Example: Tomato plant, Bogura, leaves turning yellow',
+        'aiSubmitText': '🌿 Analyze Plant Disease',
+        'aiHelperNote': 'Gemini will analyze the image and explain possible diseases in Bangla.',
+        'aiResultTitle': 'Disease Analysis Result',
+        'aiStatusNoImage': 'No image analyzed yet.',
+        'aiStatusSelectImage': 'Please select a plant image first.',
+        'aiStatusAnalyzing': 'Analyzing plant image with Gemini…',
+        'aiStatusReady': 'Analysis ready.',
+        'aiStatusError': 'Error: ',
+        'aiStatusNetworkError': 'Network error calling Gemini for image.',
+        'voiceListening': 'Listening...',
+        'voiceProcessing': 'Processing your question...',
+        'voiceSpeaking': 'Speaking answer...',
+        'voiceError': 'Voice error: ',
+        'voiceNotSupported': 'Voice recognition not supported in this browser.',
+        'voicePermissionDenied': 'Microphone permission denied. Please allow microphone access.'
+    },
+    'bn': {
+        'aiHelperTitle': '🌿 জেমিনি উদ্ভিদ রোগ বিশ্লেষক',
+        'aiHelperSubtitle': 'একটি উদ্ভিদ বা পাতার ছবি আপলোড করুন এবং জেমিনি সম্ভাব্য রোগ, লক্ষণ এবং কৃষকদের জন্য সহজ পরবর্তী পদক্ষেপ ব্যাখ্যা করবে।',
+        'aiCardTitle': 'উদ্ভিদ রোগ সনাক্তকরণ (ছবি)',
+        'aiImageLabel': 'উদ্ভিদ বা পাতার ছবি আপলোড করুন',
+        'aiPreviewLabel': 'ছবির প্রিভিউ',
+        'aiNoteLabel': 'ঐচ্ছিক নোট (যেমন, ফসলের নাম, অবস্থান)',
+        'aiNotePlaceholder': 'উদাহরণ: টমেটো গাছ, বগুড়া, পাতা হলুদ হয়ে যাচ্ছে',
+        'aiSubmitText': '🌿 উদ্ভিদ রোগ বিশ্লেষণ করুন',
+        'aiHelperNote': 'জেমিনি ছবিটি বিশ্লেষণ করবে এবং সম্ভাব্য রোগগুলি বাংলায় ব্যাখ্যা করবে।',
+        'aiResultTitle': 'রোগ বিশ্লেষণ ফলাফল',
+        'aiStatusNoImage': 'এখনও কোনো ছবি বিশ্লেষণ করা হয়নি।',
+        'aiStatusSelectImage': 'অনুগ্রহ করে প্রথমে একটি উদ্ভিদ ছবি নির্বাচন করুন।',
+        'aiStatusAnalyzing': 'জেমিনি দিয়ে উদ্ভিদ ছবি বিশ্লেষণ করা হচ্ছে…',
+        'aiStatusReady': 'বিশ্লেষণ প্রস্তুত।',
+        'aiStatusError': 'ত্রুটি: ',
+        'aiStatusNetworkError': 'জেমিনি কল করার সময় নেটওয়ার্ক ত্রুটি।',
+        'voiceListening': 'শুনছি...',
+        'voiceProcessing': 'আপনার প্রশ্ন প্রক্রিয়া করা হচ্ছে...',
+        'voiceSpeaking': 'উত্তর বলা হচ্ছে...',
+        'voiceError': 'ভয়েস ত্রুটি: ',
+        'voiceNotSupported': 'এই ব্রাউজারে ভয়েস রিকগনিশন সমর্থিত নয়।',
+        'voicePermissionDenied': 'মাইক্রোফোন অনুমতি অস্বীকার করা হয়েছে। অনুগ্রহ করে মাইক্রোফোন অ্যাক্সেস অনুমোদন করুন।'
+    }
+};
+
+// Merge AI Helper translations into global translations
+Object.assign(translations['en'], aiHelperTranslations['en']);
+Object.assign(translations['bn'], aiHelperTranslations['bn']);
+
+// Function to update AI Helper page content
+function updateAIHelperContent() {
+    const t = translations[currentLang] || translations['en'];
+    
+    // Update all elements with translation IDs
+    const elements = [
+        'aiHelperTitle', 'aiHelperSubtitle', 'aiCardTitle', 'aiImageLabel',
+        'aiPreviewLabel', 'aiNoteLabel', 'aiResultTitle', 'aiSubmitText',
+        'aiHelperNote', 'aiStatusNoImage'
+    ];
+    
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) {
+            el.textContent = t[id];
+        }
+    });
+    
+    // Update placeholder
+    const placeholderEl = document.getElementById('aiNote');
+    if (placeholderEl && t['aiNotePlaceholder']) {
+        placeholderEl.placeholder = t['aiNotePlaceholder'];
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize translations
+    updateAIHelperContent();
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', function() {
+        updateAIHelperContent();
+    });
+    const imageInput = document.getElementById('aiImage');
+    const imageNote = document.getElementById('aiNote');
+    const imageSubmit = document.getElementById('aiImageSubmit');
+    const imageStatus = document.getElementById('aiImageStatus');
+    const imageOutput = document.getElementById('aiImageOutput');
+    const riskLevelBadge = document.getElementById('riskLevelBadge');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imageFileName = document.getElementById('imageFileName');
+    
+    // Set initial status message
+    const t = translations[currentLang] || translations['en'];
+    imageStatus.textContent = t['aiStatusNoImage'] || 'No image analyzed yet.';
+
+    // Show image preview when file is selected
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';
+                imageFileName.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreviewContainer.style.display = 'none';
+        }
+    });
+
+    async function callGeminiDisease() {
+        const t = translations[currentLang] || translations['en'];
+        const file = imageInput.files[0];
+        if (!file) {
+            imageStatus.textContent = t['aiStatusSelectImage'] || 'Please select a plant image first.';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        if (imageNote.value.trim()) {
+            formData.append('note', imageNote.value.trim());
+        }
+
+        imageStatus.textContent = t['aiStatusAnalyzing'] || 'Analyzing plant image with Gemini…';
+        imageOutput.textContent = '';
+        riskLevelBadge.style.display = 'none';
+        riskLevelBadge.innerHTML = '';
+        imageSubmit.disabled = true;
+
+        try {
+            const res = await fetch('/api/ai/disease-detect', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                imageStatus.textContent = (t['aiStatusError'] || 'Error: ') + (err.error || 'Request failed');
+                imageSubmit.disabled = false;
+                return;
+            }
+
+            const data = await res.json();
+            imageStatus.textContent = t['aiStatusReady'] || 'Analysis ready.';
+            
+            // Parse and display risk level
+            const diagnosisText = data.diagnosis || '(No diagnosis text returned)';
+            const riskMatch = diagnosisText.match(/ঝুঁকির মাত্রা:\s*(High|Medium|Low|উচ্চ|মধ্যম|নিম্ন)/i);
+            if (riskMatch) {
+                const riskLevel = riskMatch[1].toLowerCase();
+                let riskText = '';
+                let riskColor = '';
+                let riskBg = '';
+                
+                if (riskLevel === 'high' || riskLevel === 'উচ্চ') {
+                    riskText = '🔴 উচ্চ ঝুঁকি';
+                    riskColor = '#dc2626';
+                    riskBg = '#fee2e2';
+                } else if (riskLevel === 'medium' || riskLevel === 'মধ্যম') {
+                    riskText = '🟡 মধ্যম ঝুঁকি';
+                    riskColor = '#f59e0b';
+                    riskBg = '#fef3c7';
+                } else {
+                    riskText = '🟢 নিম্ন ঝুঁকি';
+                    riskColor = '#059669';
+                    riskBg = '#d1fae5';
+                }
+                
+                riskLevelBadge.innerHTML = `
+                    <div style="display: inline-block; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; border: 2px solid ${riskColor}; background: ${riskBg}; color: ${riskColor};">
+                        ${riskText}
+                    </div>
+                `;
+                riskLevelBadge.style.display = 'block';
+            } else {
+                riskLevelBadge.style.display = 'none';
+            }
+            
+            imageOutput.textContent = diagnosisText;
+        } catch (e) {
+            console.error(e);
+            const t = translations[currentLang] || translations['en'];
+            imageStatus.textContent = t['aiStatusNetworkError'] || 'Network error calling Gemini for image.';
+        } finally {
+            imageSubmit.disabled = false;
+        }
+    }
+
+    imageSubmit.addEventListener('click', callGeminiDisease);
+    
+    
+});
+</script>
+{% endblock %}
+
+

@@ -1,7 +1,12 @@
 from flask import Flask, render_template, session, redirect, url_for, flash
+from dotenv import load_dotenv
 from modules.auth import auth_bp
 from modules.crops import crops_bp
 from modules.api import api_bp
+from modules.gemini_ai import gemini_bp
+
+# Load environment variables from .env (Supabase, Gemini, etc.)
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for flash messages and sessions
@@ -10,6 +15,7 @@ app.secret_key = "your_secret_key"  # Required for flash messages and sessions
 app.register_blueprint(auth_bp)
 app.register_blueprint(crops_bp)
 app.register_blueprint(api_bp)
+app.register_blueprint(gemini_bp)
 
 @app.route('/')
 def home():

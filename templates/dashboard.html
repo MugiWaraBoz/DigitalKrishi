@@ -112,6 +112,15 @@
                         <a href="{{ url_for('crops.add_crop') }}" class="btn" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(5,150,105,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                             ➕ <span id="btnAddCrop">Add New Crop</span>
                         </a>
+                        <a href="{{ url_for('gemini.ai_helper') }}" class="btn" style="background: rgba(59,130,246,0.1); color: #1d4ed8; border: 2px solid #3b82f6; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#3b82f6'; this.style.color='white';" onmouseout="this.style.background='rgba(59,130,246,0.1)'; this.style.color='#1d4ed8';">
+                            🌿 <span id="btnAiHelper">Plant Disease Analyzer</span>
+                        </a>
+
+                        <!-- New: Voice Assistant button (navigates to dedicated voice page) -->
+                        <a href="{{ url_for('gemini.voice') }}" class="btn" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(99,102,241,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            🗣️ <span id="btnVoiceAssistant">Voice Assistant</span>
+                        </a>
+
                         <a href="{{ url_for('auth.profile') }}" class="btn" style="background: rgba(5,150,105,0.08); color: #059669; border: 2px solid #059669; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#059669'; this.style.color='white';" onmouseout="this.style.background='rgba(5,150,105,0.08)'; this.style.color='#059669';">
                             👤 <span id="btnMyProfile">My Profile</span>
                         </a>
@@ -193,6 +202,9 @@
         </div>
     </div>
 </div>
+
+<!-- Floating Microphone Button -->
+<!-- Voice floating mic and status removed (use Voice Assistant in Quick Actions) -->
 {% endblock %}
 
 {% block scripts %}
@@ -210,8 +222,10 @@ const dashboardTranslations = {
         'dashSub4': 'Overall performance',
         'quickActionsTitle': '🚀 Quick Actions',
         'btnAddCrop': 'Add New Crop',
+        'btnAiHelper': 'Plant Disease Analyzer',
         'btnMyProfile': 'My Profile',
         'btnLogout': 'Logout',
+        'btnVoiceAssistant': 'Voice Assistant',
         'achievementsTitle': '🏆 Your Achievements',
         'activeBatchesTitle': '🌱 Active Crop Batches',
         'exportBtn': '📥 Export',
@@ -220,7 +234,13 @@ const dashboardTranslations = {
         'dashWelcome': '🌾 Welcome',
         'dashSubtitle': 'Monitor your crops and reduce food loss with real-time insights',
         'dashMemberSince': 'Member since',
-        'dashCropCount': 'crops'
+        'dashCropCount': 'crops',
+        'voiceListening': 'Listening...',
+        'voiceProcessing': 'Processing your question...',
+        'voiceSpeaking': 'Speaking answer...',
+        'voiceError': 'Voice error: ',
+        'voiceNotSupported': 'Voice recognition not supported in this browser.',
+        'voicePermissionDenied': 'Microphone permission denied. Please allow microphone access.'
     },
     'bn': {
         'dashLabel1': 'সক্রিয় ব্যাচ',
@@ -233,8 +253,10 @@ const dashboardTranslations = {
         'dashSub4': 'সামগ্রিক কর্মক্ষমতা',
         'quickActionsTitle': '🚀 দ্রুত পদক্ষেপ',
         'btnAddCrop': 'নতুন ফসল যোগ করুন',
+        'btnAiHelper': 'উদ্ভিদ রোগ বিশ্লেষক',
         'btnMyProfile': 'আমার প্রোফাইল',
         'btnLogout': 'লগআউট',
+        'btnVoiceAssistant': 'ভয়েস সহকারী',
         'achievementsTitle': '🏆 আপনার অর্জন',
         'activeBatchesTitle': '🌱 সক্রিয় ফসলের ব্যাচ',
         'exportBtn': '📥 রপ্তানি',
@@ -243,7 +265,13 @@ const dashboardTranslations = {
         'dashWelcome': '🌾 স্বাগতম',
         'dashSubtitle': 'আপনার ফসল পর্যবেক্ষণ করুন এবং রিয়েল-টাইম অন্তর্দৃষ্টি সহ খাদ্য ক্ষতি কমান',
         'dashMemberSince': 'সদস্য হয়েছেন',
-        'dashCropCount': 'ফসল'
+        'dashCropCount': 'ফসল',
+        'voiceListening': 'শুনছি...',
+        'voiceProcessing': 'আপনার প্রশ্ন প্রক্রিয়া করা হচ্ছে...',
+        'voiceSpeaking': 'উত্তর বলা হচ্ছে...',
+        'voiceError': 'ভয়েস ত্রুটি: ',
+        'voiceNotSupported': 'এই ব্রাউজারে ভয়েস রিকগনিশন সমর্থিত নয়।',
+        'voicePermissionDenied': 'মাইক্রোফোন অনুমতি অস্বীকার করা হয়েছে। অনুগ্রহ করে মাইক্রোফোন অ্যাক্সেস অনুমোদন করুন।'
     }
 };
 
@@ -509,6 +537,8 @@ document.addEventListener('DOMContentLoaded', function(){
     window.addEventListener('languageChanged', function() {
         updateContent();
     });
+    
+    
 });
 </script>
 
