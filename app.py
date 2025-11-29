@@ -1,9 +1,12 @@
-from flask import Flask, render_template, session, redirect, url_for, flash, request
+from flask import Flask, render_template, session, redirect, url_for, flash
+from dotenv import load_dotenv
 from modules.auth import auth_bp
 from modules.crops import crops_bp
 from modules.api import api_bp
-import re
-import os, sys
+from modules.gemini_ai import gemini_bp
+
+# Load environment variables from .env (Supabase, Gemini, etc.)
+load_dotenv()
 
 # Ensure project root is on sys.path so advisory_generator can be imported
 ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -33,6 +36,7 @@ app.secret_key = "your_secret_key"  # Required for flash messages and sessions
 app.register_blueprint(auth_bp)
 app.register_blueprint(crops_bp)
 app.register_blueprint(api_bp)
+app.register_blueprint(gemini_bp)
 
 @app.route('/')
 def home():
@@ -92,6 +96,13 @@ def advisory_generate():
     gen = AgriculturalAdvisoryGenerator()
     advisories = gen.generate_crops_advisory(crops, weather, season)
     return jsonify({'advisories': advisories})
+
+@app.route('/risk-map')
+def risk_map():
+    if 'user_id' not in session:
+        flash("Please login first", 'warning')
+        return redirect(url_for('auth.login'))
+    return render_template('risk_map.html')
 
 @app.route('/about')
 def about():

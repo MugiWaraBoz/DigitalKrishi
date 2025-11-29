@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4" style="max-width:820px;">
+	<h1 class="mb-3">ভয়েস ইন্টারফেস (bn-BD)</h1>
+	<div class="status mb-3" id="status">স্ট্যাটাস: প্রস্তুত</div>
+
+	<div id="controls" class="mb-3">
+		<button id="listenBtn" class="btn btn-primary">শুনুন (Listen) 🎤</button>
+		<button id="clearBtn" class="btn btn-light">মুছুন (Clear)</button>
+		<button id="speakBtn" class="btn btn-success">উচ্চারণ করুন (Speak)</button>
+		<button id="stopSpeakBtn" class="btn btn-outline-danger">স্টপ ভয়েস (Stop Voice)</button>
+		<button id="pauseQueueBtn" class="btn btn-warning">Pause Queue</button>
+	</div>
+
+	<textarea id="transcript" class="form-control" placeholder="Recognized text will appear here..."></textarea>
+    
+	<div id="answerContainer" class="mt-4">
+		<h5>উত্তর (Answer)</h5>
+		<div id="answer" class="card p-3">(No answer yet)</div>
+	</div>
+
+	<!-- Queue and History -->
+	<div id="queueContainer" class="mt-3">
+		<h6>Queue <span id="queueCount" class="badge bg-secondary">0</span></h6>
+		<ul id="queueList" class="list-group mb-3" style="max-height:120px; overflow:auto;"></ul>
+		<div class="d-flex justify-content-between align-items-center">
+			<div>
+				<button id="clearQueueBtn" class="btn btn-sm btn-outline-secondary">Clear Queue</button>
+			</div>
+			<div>
+				<button id="clearHistoryBtn" class="btn btn-sm btn-outline-danger">Clear History</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="historyContainer" class="mt-3">
+		<h5>Conversation History</h5>
+		<div id="historyList" class="list-group" style="max-height:240px; overflow:auto;"></div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="{{ url_for('static', filename='js/voice.js') }}"></script>
+{% endblock %}

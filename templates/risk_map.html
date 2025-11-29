@@ -1,0 +1,641 @@
+{% extends "base.html" %}
+
+{% block title %}Local Risk Map{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+/* Leaflet CSS must be added via <link> in head. Adding @import inside the
+    shared <style> block (in `base.html`) can be ignored by browsers because
+    @import must appear before other rules. We'll inject the stylesheet via
+    JS instead. */
+
+.risk-map-hero {
+    background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    color: #fff;
+    box-shadow: 0 12px 40px rgba(15,23,42,0.15);
+}
+
+#riskMap {
+    width: 100%;
+    min-height: 480px;
+    height: clamp(420px, 60vh, 560px);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.risk-map-wrapper {
+    position: relative;
+}
+
+.map-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(250,250,250,0.6));
+    z-index: 1200;
+}
+
+.map-loader .spinner {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 6px solid rgba(37,99,235,0.12);
+    border-top-color: #2563eb;
+    animation: map-spin 1s linear infinite;
+    box-shadow: 0 8px 18px rgba(15,23,42,0.12);
+}
+
+@keyframes map-spin { to { transform: rotate(360deg); } }
+
+.map-fade { opacity: 0; transition: opacity 420ms cubic-bezier(.2,.8,.2,1); }
+.map-fade.loaded { opacity: 1; }
+
+.leaflet-container {
+    font-family: inherit;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    background: #e2f3ff;
+}
+
+.leaflet-container img {
+    max-width: none !important;
+    max-height: none !important;
+}
+
+.risk-map-body {
+    overflow: hidden;
+}
+
+.leaflet-control-attribution {
+    font-size: 0.75rem;
+}
+
+.leaflet-popup-content {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.legend-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: #f8fafc;
+    font-weight: 600;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+.risk-pin-icon span {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid #ffffff;
+    box-shadow: 0 8px 18px rgba(15,23,42,0.25);
+}
+
+.farmer-marker-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 10px 22px rgba(37,99,235,0.4);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* gentle pulse to make farmer marker feel alive */
+.farmer-marker-dot::after{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0; top: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(37,99,235,0.18);
+    animation: farmer-pulse 1800ms ease-out infinite;
+    transform-origin: center;
+}
+@keyframes farmer-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.18); }
+    70% { box-shadow: 0 0 0 14px rgba(37,99,235,0.04); }
+    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.00); }
+}
+
+/* Cluster styling overrides to ensure the circular area is visible */
+.marker-cluster-small .marker-cluster-inner,
+.marker-cluster-medium .marker-cluster-inner,
+.marker-cluster-large .marker-cluster-inner {
+    border: 3px solid rgba(255,255,255,0.95) !important;
+    box-shadow: 0 8px 18px rgba(15,23,42,0.18) !important;
+}
+.marker-cluster .marker-cluster-inner {
+    border-radius: 50% !important;
+}
+
+/* neighbor marker hover/tap affordance */
+.neighbor-marker { transition: transform 150ms ease, box-shadow 150ms ease; }
+.neighbor-marker:hover { transform: scale(1.08); z-index: 900; }
+.neighbor-dot { transition: transform 160ms cubic-bezier(.2,.8,.2,1), box-shadow 160ms cubic-bezier(.2,.8,.2,1); }
+.neighbor-dot:active { transform: scale(0.98); }
+{% endblock %}
+
+{% block content %}
+<div class="container-lg py-5">
+    <div class="risk-map-hero mb-5">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-8">
+                <p class="text-uppercase fw-semibold mb-2" style="letter-spacing: 2px; opacity: 0.85;" id="pageEyebrow">Community Insight</p>
+                <h1 class="display-6 fw-bold mb-3" id="pageTitle">🗺️ Local Risk Landscape</h1>
+                <p class="lead mb-0" id="pageSubtitle">Visualize anonymous spoilage threats near your farm to stay one step ahead.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="bg-white text-dark rounded-4 p-4 shadow-sm" style="color:#0f172a;">
+                    <p class="fw-semibold text-muted mb-1" id="farmerSummaryTitle">YOUR POSITION</p>
+                    <p class="h4 fw-bold mb-2" id="farmerSummaryDistrict">Dhaka District</p>
+                    <p class="mb-0" id="farmerSummaryHint">Auto-centered on your registered location</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-9">
+            <div class="card border-0">
+                <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center" style="gap:0.75rem;">
+                    <div>
+                        <h5 class="mb-1" id="mapCardTitle">Anonymous Neighbor Alerts</h5>
+                        <small id="mapCardSubtitle">Tap pins to read Bangla risk summaries and last updated time.</small>
+                    </div>
+                    <span class="badge bg-light text-dark px-3 py-2" id="mapPrivacyBadge">🔒 Data Safe</span>
+                </div>
+                <div class="card-body p-0 risk-map-body">
+                    <div class="risk-map-wrapper">
+                        <div id="mapLoader" class="map-loader" aria-hidden="true">
+                            <div class="spinner" aria-hidden="true"></div>
+                        </div>
+                        <div id="riskMap" class="map-fade" role="region" aria-label="Local risk map"></div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0" id="legendTitle">Risk Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="legend-pill mb-3">
+                        <span class="legend-dot" style="background:#2563eb;"></span>
+                        <span id="legendFarmer">Farmer</span>
+                    </div>
+                    <div class="legend-pill mb-3">
+                        <span class="legend-dot" style="background:#16a34a;"></span>
+                        <span id="legendLow">Low Risk</span>
+                    </div>
+                    <div class="legend-pill mb-3">
+                        <span class="legend-dot" style="background:#f59e0b;"></span>
+                        <span id="legendMedium">Medium Risk</span>
+                    </div>
+                    <div class="legend-pill">
+                        <span class="legend-dot" style="background:#dc2626;"></span>
+                        <span id="legendHigh">High Risk</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0">
+                <div class="card-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%);">
+                    <h6 class="mb-0" id="tipsTitle">Community Tips</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0" id="tipsList">
+                        <li class="mb-3">✅ আর্দ্রতা বেশি হলে বাতাস চলাচল নিশ্চিত করুন</li>
+                        <li class="mb-3">🧊 উচ্চ তাপমাত্রায় সংরক্ষণ স্থান ঠান্ডা রাখুন</li>
+                        <li>📝 প্রতিবেশীদের সতর্ক করুন কিন্তু ব্যক্তিগত তথ্য গোপন রাখুন</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Ensure Leaflet CSS is present (can't safely @import inside shared <style>)
+(function ensureLeafletCss(){
+    if (!document.querySelector('link[href*="leaflet@1.9.4"]') && !document.querySelector('link[href*="leaflet.css"]')) {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(l);
+    }
+})();
+
+// Load Leaflet.markercluster CSS + JS if not present
+(function ensureMarkerCluster(){
+    if (!document.querySelector('link[href*="MarkerCluster.css"]')){
+        const c1 = document.createElement('link');
+        c1.rel = 'stylesheet';
+        c1.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+        document.head.appendChild(c1);
+        const c2 = document.createElement('link');
+        c2.rel = 'stylesheet';
+        c2.href = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css';
+        document.head.appendChild(c2);
+    }
+    if (typeof L === 'undefined' || typeof L.MarkerClusterGroup === 'undefined'){
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+        s.defer = true;
+        // When the cluster script loads, ensure a cluster group exists and migrate markers if needed
+        s.onload = function() {
+            // Poll until the map is initialized (riskMapInstance) and L.MarkerClusterGroup is available
+            const timer = setInterval(() => {
+                if (typeof L !== 'undefined' && typeof L.MarkerClusterGroup !== 'undefined' && window.riskMapInstance) {
+                    try {
+                        if (!neighborClusterGroup) {
+                            // create the cluster group and keep both local and window references in sync
+                            neighborClusterGroup = L.markerClusterGroup({ chunkedLoading: true });
+                            window.neighborClusterGroup = neighborClusterGroup;
+                            window.riskMapInstance.addLayer(neighborClusterGroup);
+
+                            // migrate any existing markers from neighborLayerGroup into the cluster
+                            if (neighborLayerGroup) {
+                                const layers = [];
+                                neighborLayerGroup.eachLayer(l => layers.push(l));
+                                layers.forEach(l => {
+                                    try { neighborClusterGroup.addLayer(l); } catch (e) {}
+                                    try { neighborLayerGroup.removeLayer(l); } catch (e) {}
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        // ignore and retry
+                    }
+                    clearInterval(timer);
+                }
+            }, 120);
+        };
+        document.head.appendChild(s);
+    }
+})();
+
+// Safe fallbacks for translations/currentLang if base template hasn't set them
+window.translations = window.translations || { en: {}, bn: {} };
+window.currentLang = window.currentLang || 'en';
+
+const DEFAULT_DISTRICT_KEY = 'dhaka';
+const BANGLADESH_BOUNDS = [
+    [20.5, 88.0], // south-west
+    [26.8, 92.7]  // north-east
+];
+const districtCoordinates = {
+    'dhaka': { center: [23.8103, 90.4125], zoom: 10, spread: 0.35 },
+    'chattogram': { center: [22.3569, 91.7832], zoom: 10, spread: 0.4 },
+    'rajshahi': { center: [24.3745, 88.6042], zoom: 10, spread: 0.35 },
+    'khulna': { center: [22.8456, 89.5403], zoom: 10, spread: 0.35 },
+    'barishal': { center: [22.7010, 90.3535], zoom: 10, spread: 0.32 },
+    'rangpur': { center: [25.7439, 89.2752], zoom: 10, spread: 0.3 },
+    'mymensingh': { center: [24.7471, 90.4203], zoom: 10, spread: 0.33 },
+    'sylhet': { center: [24.8949, 91.8687], zoom: 10, spread: 0.35 }
+};
+
+// Aliases to handle alternative spellings and common user inputs
+const districtAliasMap = {
+    'chittagong': 'chattogram',
+    'ctg': 'chattogram',
+    'barisal': 'barishal',
+    'boroishal': 'barishal',
+    // common English variants without diacritics
+    'dhaka': 'dhaka'
+};
+
+const banglaCropTypes = ['ধান', 'পেঁয়াজ', 'টমেটো', 'বেগুন', 'আলু', 'মরিচ', 'ডাল', 'সরিষা', 'শাকসবজি', 'তরমুজ'];
+const riskPalette = { low: '#16a34a', medium: '#f59e0b', high: '#dc2626' };
+let riskMapInstance = null;
+let farmerMarker = null;
+let neighborLayerGroup = null;
+let neighborClusterGroup = null;
+let farmerIcon = null;
+let riskMapResizeObserver = null;
+let neighborCoords = [];
+
+const riskMapTranslations = {
+    en: {
+        pageEyebrow: 'Community Insight',
+        pageTitle: '🗺️ Local Risk Landscape',
+        pageSubtitle: 'Visualize anonymous spoilage threats near your farm to stay one step ahead.',
+        farmerSummaryTitle: 'YOUR POSITION',
+        farmerSummaryHint: 'Auto-centered on your registered location',
+        mapCardTitle: 'Anonymous Neighbor Alerts',
+        mapCardSubtitle: 'Tap pins to read Bangla risk summaries and last updated time.',
+        mapPrivacyBadge: '🔒 Data Safe',
+        legendTitle: 'Risk Legend',
+        legendFarmer: 'Farmer',
+        legendLow: 'Low Risk',
+        legendMedium: 'Medium Risk',
+        legendHigh: 'High Risk',
+        tipsTitle: 'Community Tips'
+    },
+    bn: {
+        pageEyebrow: 'কমিউনিটি অন্তর্দৃষ্টি',
+        pageTitle: '🗺️ স্থানীয় ঝুঁকির মানচিত্র',
+        pageSubtitle: 'আপনার খামারের আশে পাশের নামবিহীন ঝুঁকি বুঝে প্রস্তুত থাকুন।',
+        farmerSummaryTitle: 'আপনার অবস্থান',
+        farmerSummaryHint: 'আপনার নিবন্ধিত স্থানের উপর ভিত্তি করে কেন্দ্র করা হয়েছে',
+        mapCardTitle: 'গোপন প্রতিবেশী সতর্কতা',
+        mapCardSubtitle: 'পিনে চাপুন এবং বাংলায় ঝুঁকি ও সর্বশেষ আপডেট পড়ুন।',
+        mapPrivacyBadge: '🔒 তথ্য সুরক্ষিত',
+        legendTitle: 'ঝুঁকি নির্দেশক',
+        legendFarmer: 'আপনি',
+        legendLow: 'কম ঝুঁকি',
+        legendMedium: 'মধ্যম ঝুঁকি',
+        legendHigh: 'উচ্চ ঝুঁকি',
+        tipsTitle: 'কমিউনিটি টিপস'
+    }
+};
+
+Object.assign(translations['en'], riskMapTranslations.en);
+Object.assign(translations['bn'], riskMapTranslations.bn);
+
+async function initRiskMapPage() {
+    updateRiskMapTexts();
+    await loadUserLocation();
+    window.addEventListener('languageChanged', updateRiskMapTexts);
+}
+
+// Expose last userInfo and neighbor coords for debugging UI
+window.__riskMapUserInfo = null;
+window.__riskMapNeighbors = null;
+
+function updateRiskMapTexts() {
+    const t = translations[currentLang] || translations.en;
+    Object.keys(riskMapTranslations.en).forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) {
+            el.textContent = t[id];
+        }
+    });
+}
+
+async function loadUserLocation() {
+    try {
+        const response = await fetch('/api/user/info');
+        if (!response.ok) throw new Error('User not found');
+        const userInfo = await response.json();
+        // store for debug panel
+        window.__riskMapUserInfo = userInfo;
+        setupRiskMap(userInfo);
+    } catch (error) {
+        console.error('Unable to load user info for risk map:', error);
+        setupRiskMap({});
+    }
+}
+
+function setupRiskMap(userInfo = {}) {
+    if (typeof L === 'undefined') {
+        console.error('Leaflet is not available');
+        return;
+    }
+
+    const lat = parseFloat(userInfo.latitude);
+    const lng = parseFloat(userInfo.longitude);
+    const hasValidCoords = !Number.isNaN(lat) && !Number.isNaN(lng);
+    const districtMeta = getDistrictMeta(userInfo.district || userInfo.division);
+    const farmerCoordinates = clampToBangladesh(hasValidCoords ? [lat, lng] : districtMeta.center);
+    const zoomLevel = districtMeta.zoom || 10;
+
+    document.getElementById('farmerSummaryDistrict').textContent = `${(userInfo.district || 'Dhaka')} District`;
+
+    if (!farmerIcon) {
+        farmerIcon = L.divIcon({
+            className: 'farmer-marker',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+            popupAnchor: [0, -20],
+            html: '<div class="farmer-marker-dot"></div>'
+        });
+    }
+
+    const mapElement = document.getElementById('riskMap');
+
+    if (!riskMapInstance) {
+        riskMapInstance = L.map('riskMap', { 
+            zoomControl: true, 
+            attributionControl: true
+        }).setView(farmerCoordinates, zoomLevel);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(riskMapInstance);
+        neighborLayerGroup = L.layerGroup().addTo(riskMapInstance);
+        // create cluster group when markercluster library is available
+        if (typeof L !== 'undefined' && typeof L.MarkerClusterGroup !== 'undefined') {
+            neighborClusterGroup = L.markerClusterGroup({ chunkedLoading: true });
+            riskMapInstance.addLayer(neighborClusterGroup);
+        } else {
+            neighborClusterGroup = null;
+        }
+        riskMapInstance.whenReady(() => {
+            try { riskMapInstance.invalidateSize(); } catch (e) {}
+            // don't hide loader here — wait until neighbors/clustering finish
+        });
+        if (window.ResizeObserver && mapElement) {
+            riskMapResizeObserver = new ResizeObserver(() => {
+                if (riskMapInstance) {
+                    requestAnimationFrame(() => {
+                        try { riskMapInstance.invalidateSize(); } catch (e) {}
+                    });
+                }
+            });
+            riskMapResizeObserver.observe(mapElement);
+        }
+
+        window.addEventListener('resize', () => {
+            clearTimeout(window.__riskMapResizeTimer);
+            window.__riskMapResizeTimer = setTimeout(() => {
+                try { riskMapInstance.invalidateSize(); } catch (e) {}
+            }, 150);
+        });
+        setTimeout(() => {
+            try { riskMapInstance.invalidateSize(); } catch (e) {}
+        }, 300);
+    } else {
+        riskMapInstance.setView(farmerCoordinates, zoomLevel);
+        setTimeout(() => {
+            try { riskMapInstance.invalidateSize(); } catch (e) {}
+        }, 150);
+        if (neighborLayerGroup) {
+            neighborLayerGroup.clearLayers();
+        }
+    }
+
+    if (farmerMarker) {
+        farmerMarker.remove();
+    }
+
+    farmerMarker = L.marker(farmerCoordinates, { icon: farmerIcon }).addTo(riskMapInstance).bindPopup(`
+        <strong>আপনার ফার্ম</strong><br>
+        বিভাগ: ${userInfo.division || 'ঢাকা'}<br>
+        জেলা: ${userInfo.district || 'ঢাকা'}
+    `);
+    // ensure farmer marker stays visually on top of clusters
+    try { farmerMarker.setZIndexOffset(1000); } catch (e) {}
+    farmerMarker.on('click', () => farmerMarker.openPopup());
+
+    // wait for neighbors and clustering to settle before revealing the map
+    (async () => {
+        try {
+            await renderNeighborRisks(farmerCoordinates, districtMeta.spread || 0.35);
+        } catch (e) {
+            // proceed anyway if neighbor rendering fails
+        }
+        try { showMapReady(); } catch (e) {}
+    })();
+}
+
+function showMapReady(){
+    const loader = document.getElementById('mapLoader');
+    const mapEl = document.getElementById('riskMap');
+    if (loader) loader.style.display = 'none';
+    if (mapEl) mapEl.classList.add('loaded');
+}
+
+function getDistrictMeta(name) {
+    const normalized = (name || '').toLowerCase().trim();
+    const mapped = districtAliasMap[normalized] || normalized;
+    return districtCoordinates[mapped] || districtCoordinates[DEFAULT_DISTRICT_KEY];
+}
+
+function renderNeighborRisks(center, spread) {
+    if (!neighborLayerGroup) {
+        neighborLayerGroup = L.layerGroup().addTo(riskMapInstance);
+    } else {
+        neighborLayerGroup.clearLayers();
+    }
+    if (neighborClusterGroup) {
+        neighborClusterGroup.clearLayers();
+    }
+    const neighbors = generateMockNeighbors(center, spread);
+    neighborCoords = neighbors.map(point => point.coords);
+    // also expose full neighbor objects for debug
+    window.__riskMapNeighbors = neighbors;
+    neighbors.forEach(point => {
+        // create a touch-friendly colored marker as a divIcon so markercluster can cluster
+        const size = getMarkerSize();
+        const dotHtml = `<div class="neighbor-dot" style="width:${size}px;height:${size}px;background:${riskPalette[point.risk] || riskPalette.low};border:2px solid #fff;border-radius:50%;box-shadow:0 6px 14px rgba(0,0,0,0.12);"></div>`;
+        const neighborIcon = L.divIcon({
+            className: 'neighbor-marker',
+            iconSize: [size, size],
+            iconAnchor: [size/2, size/2],
+            popupAnchor: [0, -size/2 - 6],
+            html: dotHtml
+        });
+        const marker = L.marker(point.coords, { icon: neighborIcon });
+        // If marker clustering is available, add markers only to the cluster group.
+        // This prevents markers from being added twice (both to a plain layer
+        // and to the cluster group) which can leave singleton markers visible
+        // even when clusters should represent them.
+        if (neighborClusterGroup) {
+            neighborClusterGroup.addLayer(marker);
+        } else {
+            marker.addTo(neighborLayerGroup);
+        }
+        marker.bindPopup(`
+            <div>
+                <strong>ফসল:</strong> ${point.crop}<br>
+                <strong>ঝুঁকি:</strong> ${getBanglaRiskWord(point.risk)}<br>
+                <strong>সর্বশেষ আপডেট:</strong> ${formatBanglaRelativeTime(point.updatedAt)}
+            </div>
+        `);
+        marker.on('click', function() {
+            this.openPopup();
+        });
+    });
+    fitMapToMarkers([center, ...neighborCoords]);
+}
+
+function getMarkerSize() {
+    // increase marker size on small screens for easier touch
+    const w = Math.max(window.innerWidth || 320, 320);
+    if (w < 480) return 22;
+    if (w < 768) return 18;
+    return 14;
+}
+
+// Debug UI removed — no-op handlers kept intentionally empty
+
+function generateMockNeighbors(center, spread, count = 14) {
+    const [baseLat, baseLng] = center;
+    return Array.from({ length: count }).map(() => {
+        const offsetLat = (Math.random() - 0.5) * Math.min(spread, 0.25);
+        const offsetLng = (Math.random() - 0.5) * Math.min(spread, 0.25) * 1.2;
+        const updatedMinutes = Math.floor(Math.random() * 240) + 5;
+        const coords = clampToBangladesh([baseLat + offsetLat, baseLng + offsetLng]);
+        return {
+            coords,
+            risk: pickWeightedRiskLevel(),
+            crop: banglaCropTypes[Math.floor(Math.random() * banglaCropTypes.length)],
+            updatedAt: new Date(Date.now() - updatedMinutes * 60000)
+        };
+    });
+}
+
+function pickWeightedRiskLevel() {
+    const roll = Math.random();
+    if (roll > 0.8) return 'high';
+    if (roll > 0.45) return 'medium';
+    return 'low';
+}
+
+function getBanglaRiskWord(level) {
+    switch (level) {
+        case 'high': return 'উচ্চ';
+        case 'medium': return 'মধ্যম';
+        default: return 'কম';
+    }
+}
+
+function formatBanglaRelativeTime(dateObj) {
+    const diffMinutes = Math.max(1, Math.round((Date.now() - dateObj.getTime()) / 60000));
+    if (diffMinutes < 60) return `${diffMinutes} মিনিট আগে`;
+    const hours = Math.round(diffMinutes / 60);
+    return `${hours} ঘণ্টা আগে`;
+}
+
+function clampToBangladesh([lat, lng]) {
+    const south = BANGLADESH_BOUNDS[0][0];
+    const west = BANGLADESH_BOUNDS[0][1];
+    const north = BANGLADESH_BOUNDS[1][0];
+    const east = BANGLADESH_BOUNDS[1][1];
+    const clampedLat = Math.min(Math.max(lat, south), north);
+    const clampedLng = Math.min(Math.max(lng, west), east);
+    return [clampedLat, clampedLng];
+}
+
+function fitMapToMarkers(points = []) {
+    if (!riskMapInstance || !points.length) return;
+    const validPoints = points.filter(pt => Array.isArray(pt) && pt.length === 2 && !pt.some(Number.isNaN));
+    if (!validPoints.length) return;
+    const bounds = L.latLngBounds(validPoints);
+    riskMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
+}
+
+document.addEventListener('DOMContentLoaded', initRiskMapPage);
+</script>
+{% endblock %}
+
