@@ -1,25 +1,248 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, send_file
+from io import BytesIO
 import requests
 import os
+import base64
 from datetime import datetime
+
 from modules.database import get_supabase
+from modules.weather import fetch_weather_forecast
+from config.gemini_config import get_gemini_client, get_default_gemini_model
 
 api_bp = Blueprint('api', __name__)
+
+
+@api_bp.route('/api/ai/voice-question', methods=['POST'])
+def answer_voice_question():
+    """
+    Accept a text question in Bangla and return a Bangla answer using Gemini.
+    
+    Body JSON:
+    - question: text question (required)
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json() or {}
+    question = data.get('question', '').strip()
+    if not question:
+        return jsonify({'error': 'question is required'}), 400
+    
+    try:
+        client = get_gemini_client()
+        model_name = get_default_gemini_model()
+        
+        prompt_text = (
+            "You are a helpful agricultural assistant for Bangladeshi farmers.\n"
+            "Answer the following question in simple, clear Bangla (বাংলা ভাষায়).\n"
+            "IMPORTANT: Write your answer in proper Bangla script (Bengali Unicode), not in English transliteration.\n"
+            "Use simple, everyday Bangla words that farmers understand.\n"
+            "Keep sentences short and clear.\n"
+            "Avoid complex technical terms - explain things simply.\n"
+            "If the question is about plant diseases, pests, or crop management, provide specific, practical advice.\n"
+            "Make your answer conversational and friendly, as if speaking directly to a farmer.\n\n"
+            f"Question: {question}\n\n"
+            "Answer ONLY in Bangla (বাংলা ভাষায়), using proper Bengali script:"
+        )
+        
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt_text,
+        )
+        
+        answer_text = response.text if hasattr(response, "text") else str(response)
+        
+        return jsonify({
+            "answer": answer_text,
+            "model": model_name,
+        })
+    except Exception as e:
+        print(f"Gemini voice-question error: {e}")
+        return jsonify({"error": "Gemini request failed", "details": str(e)}), 500
+
+
+@api_bp.route('/api/tts', methods=['POST'])
+def tts():
+    """Simple server-side TTS endpoint. Accepts JSON { text, lang } and returns MP3 audio.
+
+    Uses gTTS as a lightweight fallback to produce Bangla speech when browser voices aren't available.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    data = request.get_json() or {}
+    text = (data.get('text') or '').strip()
+    lang = (data.get('lang') or data.get('language') or 'bn').strip()
+
+    if not text:
+        return jsonify({'error': 'text is required'}), 400
+
+    # Prefer Google Cloud Text-to-Speech when credentials are available and package is installed.
+    # Fall back to gTTS if Google Cloud TTS isn't available.
+    use_gcloud = False
+    try:
+        from google.cloud import texttospeech
+        # Only use if application credentials are configured
+        if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
+            use_gcloud = True
+    except Exception:
+        use_gcloud = False
+
+    if use_gcloud:
+        try:
+            client = texttospeech.TextToSpeechClient()
+            # Try a common Bengali locale used by cloud TTS (bn-IN), fallback to bn-BD
+            language_candidates = ['bn-IN', 'bn-BD', lang]
+            audio_content = None
+            for lang_code in language_candidates:
+                try:
+                    synthesis_input = texttospeech.SynthesisInput(text=text)
+                    voice = texttospeech.VoiceSelectionParams(
+                        language_code=lang_code,
+                        ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL,
+                    )
+                    audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
+                    response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
+                    audio_content = response.audio_content
+                    if audio_content:
+                        break
+                except Exception:
+                    # try next candidate
+                    audio_content = None
+                    continue
+
+            if not audio_content:
+                raise RuntimeError('Google Cloud TTS returned no audio')
+
+            buf = BytesIO(audio_content)
+            buf.seek(0)
+            return send_file(buf, mimetype='audio/mpeg', as_attachment=False, download_name='speech.mp3')
+        except Exception as e:
+            print(f"Google Cloud TTS failed, falling back to gTTS: {e}")
+            # fall through to gTTS fallback
+
+    # gTTS fallback
+    try:
+        from gtts import gTTS
+    except Exception as e:
+        return jsonify({'error': 'No TTS provider available', 'details': str(e)}), 500
+
+    try:
+        tts_obj = gTTS(text=text, lang=lang, slow=False)
+        buf = BytesIO()
+        tts_obj.write_to_fp(buf)
+        buf.seek(0)
+        return send_file(buf, mimetype='audio/mpeg', as_attachment=False, download_name='speech.mp3')
+    except Exception as e:
+        print(f"gTTS fallback TTS error: {e}")
+        return jsonify({'error': 'TTS failed', 'details': str(e)}), 500
+
+
+@api_bp.route('/api/ai/disease-detect', methods=['POST'])
+def detect_disease_with_gemini():
+    """
+    Accept a plant image and ask Gemini to identify possible diseases.
+
+    Form-data:
+    - image: uploaded file (required)
+    - note: optional extra text/context
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    if 'image' not in request.files:
+        return jsonify({'error': 'image file is required'}), 400
+
+    image_file = request.files['image']
+    if image_file.filename == '':
+        return jsonify({'error': 'image file is required'}), 400
+
+    try:
+        image_bytes = image_file.read()
+        if not image_bytes:
+            return jsonify({'error': 'empty image file'}), 400
+
+        mime_type = image_file.mimetype or 'image/jpeg'
+        image_part = {
+            "mime_type": mime_type,
+            "data": base64.b64encode(image_bytes).decode("utf-8"),
+        }
+
+        note = (request.form.get('note') or '').strip()
+
+        client = get_gemini_client()
+        model_name = get_default_gemini_model()
+
+        prompt_text = (
+            "You are an expert plant disease specialist for Bangladeshi agriculture.\n"
+            "Look at this plant photo and respond ONLY in Bangla, in simple language for Bangladeshi farmers.\n"
+            "You must:\n"
+            "1. Identify the pest/disease (if visible)\n"
+            "2. Categorize the Risk Level as High, Medium, or Low based on potential crop damage\n"
+            "3. Provide a practical, local treatment plan using methods available in Bangladesh\n\n"
+            "Return the answer in this EXACT text format (no markdown, no bullets, just headings and short lines):\n"
+            "রোগের নাম: <suspected disease/pest name or 'নিশ্চিত কোনো রোগ দেখা যাচ্ছে না'>\n"
+            "ঝুঁকির মাত্রা: <High/Medium/Low - must be one of these three words>\n"
+            "লক্ষণ: <2-3 short symptom points in one paragraph>\n"
+            "কারণ: <short explanation of likely cause>\n"
+            "করণীয়: <practical, local treatment plan focusing on methods available in Bangladesh - use traditional and organic solutions when possible, mention specific local remedies if applicable>\n"
+        )
+        if note:
+            prompt_text += f"\nকৃষকের নোট: {note}\n"
+
+        contents = [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt_text},
+                    {"inline_data": image_part},
+                ],
+            }
+        ]
+
+        response = client.models.generate_content(
+            model=model_name,
+            contents=contents,
+        )
+
+        diagnosis_text = response.text if hasattr(response, "text") else str(response)
+
+        return jsonify({
+            "diagnosis": diagnosis_text,
+            "model": model_name,
+        })
+    except Exception as e:
+        print(f"Gemini disease-detect error: {e}")
+        return jsonify({"error": "Gemini disease detection failed", "details": str(e)}), 500
 
 # ==================== HELPER FUNCTIONS ====================
 
 def get_upazila_coords():
     """Map of Bangladeshi upazilas to coordinates and names"""
-    return {
+    # Core canonical entries
+    coords = {
         'dhaka': {'lat': 23.8103, 'lon': 90.4125, 'name': 'ঢাকা'},
-        'chittagong': {'lat': 22.3569, 'lon': 91.7832, 'name': 'চট্টগ্রাম'},
+        'chattogram': {'lat': 22.3569, 'lon': 91.7832, 'name': 'চট্টগ্রাম'},
         'rajshahi': {'lat': 24.3745, 'lon': 88.6042, 'name': 'রাজশাহী'},
         'khulna': {'lat': 22.8456, 'lon': 89.5644, 'name': 'খুলনা'},
-        'barisal': {'lat': 22.7010, 'lon': 90.3535, 'name': 'বরিশাল'},
+        'barishal': {'lat': 22.7010, 'lon': 90.3535, 'name': 'বরিশাল'},
         'sylhet': {'lat': 24.8949, 'lon': 91.8687, 'name': 'সিলেট'},
         'rangpur': {'lat': 25.7439, 'lon': 89.2752, 'name': 'রংপুর'},
         'mymensingh': {'lat': 24.7465, 'lon': 90.4082, 'name': 'ময়মনসিংহ'}
     }
+
+    # Add common aliases mapping to same canonical entries for compatibility
+    aliases = {
+        'chittagong': 'chattogram',
+        'ctg': 'chattogram',
+        'barisal': 'barishal',
+        'boroishal': 'barishal'
+    }
+
+    for alias, canon in aliases.items():
+        coords[alias] = coords[canon]
+
+    return coords
 
 def calculate_risk_level(forecasts):
     """
@@ -160,6 +383,22 @@ def get_user_info():
             except:
                 created_date = farmer['created_at']
         
+        # Try to extract latitude/longitude from common field names
+        def _get_coord(keys):
+            for k in keys:
+                if farmer.get(k) is not None:
+                    try:
+                        return float(farmer.get(k))
+                    except Exception:
+                        try:
+                            return float(str(farmer.get(k)))
+                        except Exception:
+                            return farmer.get(k)
+            return None
+
+        latitude = _get_coord(['latitude', 'lat', 'location_lat'])
+        longitude = _get_coord(['longitude', 'lon', 'lng', 'location_lng'])
+
         return jsonify({
             'id': farmer.get('id'),
             'name': farmer.get('name'),
@@ -167,7 +406,11 @@ def get_user_info():
             'phone': farmer.get('phone'),
             'created_at': farmer.get('created_at'),
             'created_at_bn': created_date,
-            'preferred_language': farmer.get('preferred_language', 'en')
+            'preferred_language': farmer.get('preferred_language', 'en'),
+            'latitude': latitude,
+            'longitude': longitude,
+            'district': farmer.get('district'),
+            'division': farmer.get('division')
         })
         
     except Exception as e:
@@ -246,6 +489,27 @@ def get_weather(location):
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e), 'type': type(e).__name__}), 500
+
+
+@api_bp.route('/api/weather/agri/<location>')
+def get_weather_agri(location):
+    """
+    Fetch 7-day agricultural advisory for all major crops.
+
+    Uses Open-Meteo via modules.weather.fetch_weather_forecast and returns
+    Dhaka-style date labels plus crop-wise risk/advice in Bangla.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        data = fetch_weather_forecast(location)
+        if data.get('error'):
+            return jsonify({'error': data['error']}), 500
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error in get_weather_agri: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @api_bp.route('/api/weather-advisory/<crop_id>')

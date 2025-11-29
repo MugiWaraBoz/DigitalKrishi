@@ -2,19 +2,21 @@
 Flask==3.1.2
 
 # Database
-supabase==1.0.3
+supabase         # Upgraded to avoid httpx conflict
 
 # Environment Variables
 python-dotenv==1.0.1
 
 # HTTP Requests
 requests==2.32.3
+httpx==0.28.1
 
 # Date/Time
 python-dateutil==2.9.0.post0
 
 # Data Processing
 pandas==2.3.3
+numpy==2.3.3
 
 # JSON Operations
 simplejson==3.19.2
@@ -31,5 +33,7 @@ click==8.1.7
 # Weather API 
 pyowm==3.3.0
 
-# Data Analysis 
-numpy==2.3.3
+# Google Generative AI (Gemini)
+google-genai==1.52.0
+gTTS==2.4.0
+google-cloud-texttospeech>=2.0.0
