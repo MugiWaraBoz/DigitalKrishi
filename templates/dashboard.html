@@ -121,6 +121,11 @@
                             🗣️ <span id="btnVoiceAssistant">Voice Assistant</span>
                         </a>
 
+                        <!-- Risk Map quick access button (mobile-friendly) -->
+                        <a href="{{ url_for('risk_map') }}" class="btn d-md-none d-block" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(6,182,212,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            🗺️ <span>Risk Map</span>
+                        </a>
+
                         <a href="{{ url_for('auth.profile') }}" class="btn" style="background: rgba(5,150,105,0.08); color: #059669; border: 2px solid #059669; padding: 0.75rem 1.5rem; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.background='#059669'; this.style.color='white';" onmouseout="this.style.background='rgba(5,150,105,0.08)'; this.style.color='#059669';">
                             👤 <span id="btnMyProfile">My Profile</span>
                         </a>
@@ -203,9 +208,7 @@
                     </div>
                 </div>
                 <div class="card-body p-4">
-                    <div style="background: rgba(3, 102, 214, 0.05); padding: 1.5rem; border-left: 4px solid #0284c7; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <p id="weatherAlert" style="margin: 0; color: #1e293b; font-weight: 500;">Loading crop advisory...</p>
-                    </div>
+                    <!-- advisory summary removed to reduce UI noise; forecast grid below remains -->
                     <div class="row text-center g-3" id="weatherForecast">
                         <!-- Weather data loaded here -->
                     </div>
@@ -548,8 +551,8 @@ async function loadWeatherData() {
         window.latestWeather = weather;
         const advisory = await generateCropAdvisory(userCrops, weather);
 
-        // Display the advisory
-        weatherAlert.innerHTML = `<strong>${advisory}</strong>`;
+        // Display the advisory (only if the alert element exists)
+        if (weatherAlert) weatherAlert.innerHTML = `<strong>${advisory}</strong>`;
         
         // Display forecast
         if (weather.forecasts && weather.forecasts.length > 0) {
@@ -568,7 +571,7 @@ async function loadWeatherData() {
 
     } catch (error) {
         console.error('Error loading weather:', error);
-        weatherAlert.innerHTML = `<strong>ফসল পরামর্শ লোড করা যাচ্ছে না। স্বাভাবিক যত্ন চালিয়ে যান।</strong>`;
+        if (weatherAlert) weatherAlert.innerHTML = `<strong>ফসল পরামর্শ লোড করা যাচ্ছে না। স্বাভাবিক যত্ন চালিয়ে যান।</strong>`;
     }
 }
 

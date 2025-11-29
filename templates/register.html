@@ -654,6 +654,28 @@
                 }
             });
         });
+
+        // Capture geolocation and attach to registration form before submit
+        const regForm = document.getElementById('registrationForm');
+        const regLat = document.createElement('input');
+        regLat.type = 'hidden'; regLat.name = 'latitude'; regLat.id = 'regLatitude';
+        const regLng = document.createElement('input');
+        regLng.type = 'hidden'; regLng.name = 'longitude'; regLng.id = 'regLongitude';
+        regForm.appendChild(regLat);
+        regForm.appendChild(regLng);
+
+        // Try to get user location (non-blocking)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                try {
+                    document.getElementById('regLatitude').value = pos.coords.latitude;
+                    document.getElementById('regLongitude').value = pos.coords.longitude;
+                } catch (e) { /* ignore */ }
+            }, function(err) {
+                // user denied or unavailable - leave hidden fields empty
+                console.warn('Geolocation not available:', err);
+            }, { timeout: 5000 });
+        }
     });
 </script>
 {% endblock %}
